@@ -1,0 +1,95 @@
+<!doctype html>
+<!-- Solar Yield Predictor project page (FRP 2026). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A Solar Forecast That Beats the Plan — FRP 2026</title>
+<meta name="description" content="A simple day-ahead forecast for a solar plant: yesterday's real output had a lower miss than the plant plan in September and October 2026.">
+<style>
+  :root { --accent: #A3283D; --ink: #222; --muted: #666; --line: #e6e1df; --soft: #faf7f5; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: #fff; }
+  main { max-width: 860px; margin: 0 auto; padding: 40px 20px 60px; }
+  header { text-align: center; }
+  h1 { font-size: clamp(28px, 5vw, 42px); line-height: 1.15; margin: 0 0 12px; }
+  .authors { font-size: 19px; } .aff { color: var(--muted); margin-top: 4px; }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 22px 0 8px; }
+  .links a { background: var(--ink); color: #fff; text-decoration: none; padding: 8px 18px; border-radius: 999px; font-weight: 600; font-size: 15px; }
+  .links a.soon { background: #bbb; pointer-events: none; }
+  figure { margin: 28px 0; } figure img { width: 100%; border-radius: 10px; border: 1px solid var(--line); }
+  figcaption { color: var(--muted); font-size: 15px; text-align: center; margin-top: 6px; }
+  h2 { font-size: 26px; margin: 44px 0 10px; text-align: center; }
+  .tldr { background: var(--soft); border-left: 5px solid var(--accent); padding: 14px 18px; border-radius: 0 8px 8px 0; }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 18px 0; }
+  .steps div { border: 2px solid var(--accent); border-radius: 10px; padding: 12px; text-align: center; font-size: 15px; }
+  .steps b { display: block; color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; font-size: 16px; margin: 14px 0; }
+  th, td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: center; }
+  th { border-bottom: 2px solid var(--ink); } td:first-child, th:first-child { text-align: left; }
+  tr.best td { font-weight: 700; background: #fdf1f3; }
+  .table-wrap { overflow-x: auto; }
+  pre { background: var(--soft); padding: 14px; border-radius: 8px; overflow-x: auto; font-size: 14px; }
+  footer { color: var(--muted); font-size: 14px; text-align: center; margin-top: 50px; border-top: 1px solid var(--line); padding-top: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>A Solar Forecast That Beats the Plan</h1>
+    <div class="authors">Aruna</div>
+    <div class="aff">FRP 2026, AI Engineering track · ISSAI, Nazarbayev University</div>
+    <div class="links">
+      <a href="https://kitan-a.com/frp/pub/s06/solar/">▶ Demo</a>
+      <a href="https://github.com/zhureswe/solar-yield-predictor">Code</a>
+      <a href="paper.pdf">📄 Paper</a>
+    </div>
+  </header>
+
+  <figure>
+    <img src="images/teaser.jpg" alt="September 2026 mean forecast miss for yesterday's output and the plant plan">
+    <figcaption>September 2026: mean daily miss for each forecast. Yesterday's output had the lowest miss.</figcaption>
+  </figure>
+
+  <p class="tldr"><b>In one sentence:</b> Using yesterday's real output as tomorrow's forecast cut the mean daily miss to 512.600 kWh in September, against 1,015.100 kWh for the plant plan.</p>
+
+  <h2>The problem</h2>
+  <p>Every day a solar plant must send the grid a plan for tomorrow, hour by hour. When the real output differs from the plan, the plant pays for the difference. The sun does not follow a plan: clouds and outages make the daily total hard to predict.</p>
+
+  <h2>How it works</h2>
+  <div class="steps">
+    <div><b>1. Input</b> daily plant report and plan</div>
+    <div><b>2. Model</b> tomorrow = yesterday's real output</div>
+    <div><b>3. Output</b> tomorrow's kWh and accuracy</div>
+  </div>
+  <p>June to September 2026 gives 122 days; October adds 27, for 149 days. I tested yesterday's output, the 7-day median, the plant plan, a linear weather model and a small random forest. Inputs came from the plant's daily reports and plan files and from Open-Meteo weather data; the hourly split uses pvlib clear-sky curves at Kargaly (42.866 N, 68.376 E).</p>
+
+  <h2>Results</h2>
+  <p>Tested on 30 clean September days and 26 clean October days. Outage and plan-zero days are counted apart.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Method</th><th>September miss, kWh</th><th>Within 10%</th></tr>
+    <tr><td>Plant plan</td><td>1,015.100</td><td>12 of 30</td></tr>
+    <tr class="best"><td>Yesterday's output</td><td>512.600</td><td>23 of 30</td></tr>
+  </table></div>
+  <p>On October's 26 clean days, yesterday's output missed 1,109.877 kWh on average (16.78%) against 1,651.382 kWh (24.96%) for the plan; it was within 10% on 15 of 26 days against 10 of 26. The learned weather models did worse in September (20.4–20.9% miss), so the page keeps the simple rule. Cloudy days and outages still cause large misses.</p>
+
+  <figure>
+    <img src="images/demo.jpg" alt="Screenshot of the Solar Yield Predictor page with uploaded plant files and the forecast">
+    <figcaption>The demo: upload the plant's daily reports and plans to see tomorrow's forecast, the real output and both accuracies.</figcaption>
+  </figure>
+
+  <h2>Limitations and ethics</h2>
+  <p>The test is small: one plant, 26 clean October days, and one month that was not used to choose the forecast. September was seen many times during development, so October is the honest test, and it is still only one month. The page uses no private data: files are read in the browser and never uploaded, and no plant data or other people's names are published.</p>
+
+  <h2>Cite</h2>
+<pre>@misc{solar-yield-predictor2026,
+  title  = {A Solar Forecast That Beats the Plan},
+  author = {Aruna},
+  note   = {FRP 2026, ISSAI, Nazarbayev University},
+  year   = {2026}
+}</pre>
+
+  <footer>Made at the ISSAI Fall Research Program 2026 · Page template: FRP AI Engineering<br>We used an AI agent to write code and check the English.</footer>
+</main>
+</body>
+</html>
