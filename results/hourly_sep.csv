@@ -1,0 +1,3 @@
+forecast,days,hours,hourly_miss_kwh,hourly_miss_pct,within10_hours,producing_hours,within10_pct,daily_miss_kwh,daily_miss_pct
+my forecast (H4 mean of last 7 clean days),30,720,27.863,8.85,233,386,60.4,512.6,6.78
+plant plan,30,720,45.393,14.42,169,386,43.8,1015.1,13.43

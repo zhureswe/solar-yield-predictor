@@ -1,0 +1,11 @@
+month,forecast,days,avg_real_kwh,miss_kwh,miss_pct,accuracy_pct,within10_days,within10_pct,note
+2026-06,plan,29,4964.586,1888.000,38.03,61.97,4,13.79,1 June left out: no yesterday for either forecast
+2026-06,yesterday,29,4964.586,1485.621,29.92,70.08,9,31.03,1 June left out: no yesterday for either forecast
+2026-07,plan,25,4768.400,879.280,18.44,81.56,10,40.00,7-12 July note days left out
+2026-07,yesterday,25,4768.400,621.200,13.03,86.97,14,56.00,7-12 July note days left out
+2026-08,plan,26,5275.654,1883.462,35.70,64.30,3,11.54,"13, 14, 17 August outage and 18, 20 August plan_zero left out"
+2026-08,yesterday,26,5275.654,1250.923,23.71,76.29,9,34.62,"13, 14, 17 August outage and 18, 20 August plan_zero left out"
+2026-09,plan,30,7556.033,1015.100,13.43,86.57,12,40.00,no note days
+2026-09,yesterday,30,7556.033,512.600,6.78,93.22,23,76.67,no note days
+2026-10,plan,26,6615.555,1651.382,24.96,75.04,10,38.46,4 October outage left out (data/october_daily.csv)
+2026-10,yesterday,26,6615.555,1109.877,16.78,83.22,15,57.69,4 October outage left out (data/october_daily.csv)

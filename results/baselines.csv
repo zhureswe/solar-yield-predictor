@@ -1,0 +1,5 @@
+forecast,all31_days,all31_avg_real_kwh,all31_miss_kwh,all31_miss_pct,clean25_days,clean25_avg_real_kwh,clean25_miss_kwh,clean25_miss_pct
+plan,31,4205.065,1584.387,37.68,25,4768.400,879.280,18.44
+yesterday,31,4205.065,766.129,18.22,25,4768.400,622.280,13.05
+median7,31,4205.065,1194.290,28.40,25,4768.400,723.640,15.18
+my model,,,,,25,4768.400,974.721,20.44

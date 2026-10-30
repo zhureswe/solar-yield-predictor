@@ -1,0 +1,6 @@
+forecast,days,hours,hourly_miss_kwh,hourly_miss_pct,within10_hours,producing_hours,within10_pct,daily_miss_kwh,daily_miss_pct
+H1 yesterday's hours,19,456,59.611,26.31,80,249,32.1,1292.842,23.78
+H2 pvlib clear sky,19,456,62.981,27.8,55,249,22.1,1292.842,23.78
+H3 Open-Meteo sun,19,456,62.142,27.43,52,249,20.9,1292.842,23.78
+H4 mean of last 7 clean days,19,456,57.589,25.42,65,249,26.1,1292.842,23.78
+H5 plant plan shape,19,456,63.352,27.96,56,249,22.5,1292.842,23.78

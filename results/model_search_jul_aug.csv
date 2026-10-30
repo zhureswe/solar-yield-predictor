@@ -1,0 +1,11 @@
+rank,model,scored_days,miss_kwh,miss_pct
+1,8 small random forest: same 4 inputs,51,831.679,16.54
+2,9 average of 1 and 5,51,911.049,18.12
+3,2 mean of last 2 days,51,912.392,18.15
+4,1 yesterday,51,942.235,18.74
+5,"7 straight line: yesterday real, sun, cloud, tmax",51,948.909,18.88
+6,3 mean of last 3 days,51,967.255,19.24
+7,4 yesterday x (tomorrow sun / yesterday sun),51,1070.714,21.30
+8,5 median(realsun) 3 days x tomorrow sun,51,1071.190,21.31
+9,6a median(realsun) 5 days x tomorrow sun,51,1278.136,25.43
+10,6b median(realsun) 7 days x tomorrow sun,51,1300.292,25.87

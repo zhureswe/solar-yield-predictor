@@ -1,0 +1,7 @@
+scope,forecast,days,note_days,hours,miss_kwh,miss_pct,accuracy_pct,within10_days,producing_hours,within10_hours,within10_pct,daily_miss_kwh,daily_miss_pct,note
+daily,Yesterday,26,1,,1109.877,16.78,83.22,15,,,,,,October 1-27; 4 Oct outage counted apart
+daily,Cloud rule T=30%,26,1,,1018.777,15.40,84.60,15,,,,,,"October 1-27; 4 Oct outage counted apart; switch days: 2026-10-04, 2026-10-12"
+daily,7-day median,26,1,,1011.987,15.30,84.70,15,,,,,,October 1-27; 4 Oct outage counted apart
+daily,Plant plan,26,1,,1651.382,24.96,75.04,10,,,,,,October 1-27; 4 Oct outage counted apart
+hourly,My hourly forecast (H4 mean of last 7 clean days),26,1,624,52.687,19.11,80.89,,292,155,53.1,1109.877,16.78,October 1-27; 4 Oct outage counted apart
+hourly,Plant plan (hourly),26,1,624,76.301,27.68,72.32,,292,84,28.8,1651.382,24.96,October 1-27; 4 Oct outage counted apart

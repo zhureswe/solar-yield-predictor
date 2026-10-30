@@ -1,0 +1,5 @@
+forecast,days,avg_real_kwh,miss_kwh,miss_pct,accuracy_pct,within10_days,within10_pct
+real 1 day(s) before,30,7556.033,512.600,6.78,93.22,23,76.67
+real 2 day(s) before,30,7556.033,747.000,9.89,90.11,20,66.67
+real 3 day(s) before,30,7556.033,885.600,11.72,88.28,18,60.00
+plan,30,7556.033,1015.100,13.43,86.57,12,40.00

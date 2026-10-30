@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A Solar Forecast That Beats the Plan</title>
+<style>
+  :root {
+    --bg: #0a1422;
+    --bg2: #10233a;
+    --text: #eef5ff;
+    --muted: #9fb3c8;
+    --accent: #ffd166;
+    --good: #7ee2a8;
+    --line: rgba(255, 255, 255, 0.12);
+    --card: rgba(255, 255, 255, 0.05);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: radial-gradient(circle at 20% 10%, var(--bg2), var(--bg) 60%);
+    color: var(--text);
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .deck { position: relative; height: 100vh; height: 100dvh; }
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: none;
+    overflow: auto;
+    padding: clamp(20px, 5vh, 64px) clamp(22px, 6vw, 96px) clamp(84px, 12vh, 120px);
+    flex-direction: column;
+    justify-content: center;
+  }
+  .slide.is-active { display: flex; }
+  .inner { width: 100%; max-width: 1120px; margin: 0 auto; }
+  .kicker {
+    margin: 0 0 18px;
+    color: var(--accent);
+    font-size: clamp(13px, 1.4vw, 18px);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  h1 {
+    margin: 0 0 22px;
+    font-size: clamp(34px, 6vw, 76px);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+  }
+  h2 {
+    margin: 0 0 clamp(14px, 2.2vh, 28px);
+    font-size: clamp(26px, 4vw, 48px);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  h3 {
+    margin: 0 0 10px;
+    font-size: clamp(17px, 1.9vw, 24px);
+    color: var(--accent);
+  }
+  p { margin: 0 0 14px; }
+  .lead {
+    max-width: 900px;
+    color: var(--muted);
+    font-size: clamp(18px, 2.2vw, 30px);
+    line-height: 1.35;
+  }
+  .accent { color: var(--accent); }
+  .good { color: var(--good); }
+  ul.clean {
+    margin: 18px 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 12px;
+    max-width: 980px;
+    font-size: clamp(17px, 2vw, 27px);
+    line-height: 1.35;
+  }
+  ul.clean li {
+    position: relative;
+    padding-left: 30px;
+  }
+  ul.clean li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  ul.clean li b { color: #fff; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(10px, 1.6vw, 18px);
+  }
+  .stat {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--card);
+    padding: clamp(14px, 2vw, 24px);
+  }
+  .stat .num {
+    display: block;
+    color: var(--accent);
+    font-size: clamp(28px, 4.4vw, 56px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .stat .lbl {
+    display: block;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: clamp(13px, 1.4vw, 18px);
+    line-height: 1.3;
+  }
+  .callout {
+    margin-top: clamp(12px, 2vh, 20px);
+    border-left: 4px solid var(--accent);
+    padding: 10px 0 10px 16px;
+    font-size: clamp(16px, 1.8vw, 24px);
+    line-height: 1.35;
+  }
+  .traps {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: clamp(12px, 2vh, 20px);
+    font-size: clamp(14px, 1.5vw, 20px);
+    line-height: 1.35;
+    color: var(--muted);
+  }
+  .traps b { color: var(--text); }
+
+  .cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(16px, 3vw, 40px);
+  }
+  .cols ul {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--muted);
+    font-size: clamp(16px, 1.8vw, 24px);
+    line-height: 1.5;
+  }
+  .result {
+    display: grid;
+    gap: 6px;
+    margin-top: clamp(12px, 2vh, 20px);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--card);
+    padding: clamp(14px, 2vw, 22px);
+    font-size: clamp(16px, 1.9vw, 25px);
+    line-height: 1.35;
+  }
+  .result span {
+    color: var(--muted);
+    font-size: clamp(13px, 1.4vw, 17px);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  table.cmp {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: clamp(14px, 1.8vw, 24px);
+  }
+  table.cmp th, table.cmp td {
+    padding: clamp(6px, 1.1vh, 12px) 10px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+  table.cmp th {
+    color: var(--muted);
+    font-size: clamp(12px, 1.4vw, 17px);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+  table.cmp td:first-child { color: var(--muted); }
+  table.cmp small { color: var(--muted); font-size: 0.72em; }
+  .example {
+    margin-top: clamp(10px, 1.8vh, 18px);
+    color: var(--muted);
+    font-size: clamp(14px, 1.7vw, 22px);
+    line-height: 1.4;
+  }
+  .example b { color: var(--good); }
+
+  .nav {
+    position: fixed;
+    right: clamp(14px, 3vw, 32px);
+    bottom: clamp(12px, 2.5vh, 26px);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10;
+  }
+  .nav button {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: rgba(10, 20, 34, 0.8);
+    color: var(--text);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .nav button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .nav button:disabled { opacity: 0.35; cursor: default; }
+  #counter {
+    min-width: 52px;
+    text-align: center;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    font-size: 15px;
+  }
+  .hint {
+    position: fixed;
+    left: clamp(14px, 3vw, 32px);
+    bottom: clamp(20px, 3vh, 30px);
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+  }
+  .progress {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    z-index: 10;
+  }
+  #bar {
+    height: 100%;
+    width: 20%;
+    background: var(--accent);
+    transition: width 0.25s ease;
+  }
+  @media (max-width: 720px) {
+    .stats { grid-template-columns: 1fr; }
+    .traps, .cols { grid-template-columns: 1fr; }
+    .hint { display: none; }
+    table.cmp td, table.cmp th { padding-left: 4px; padding-right: 4px; }
+  }
+</style>
+</head>
+<body>
+<main class="deck">
+
+  <section class="slide is-active" aria-label="Slide 1: The problem">
+    <div class="inner">
+      <p class="kicker">A 3-minute talk · Kargaly solar plant</p>
+      <h1>Can a small forecast <span class="accent">beat the plan?</span></h1>
+      <p class="lead">Every day the plant must send the grid a plan for tomorrow, hour by hour. The sun does not follow a plan.</p>
+      <ul class="clean">
+        <li>Every kWh of miss costs money.</li>
+        <li>My question: can an honest forecast make the miss smaller?</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="slide" aria-label="Slide 2: My data">
+    <div class="inner">
+      <h2>My data</h2>
+      <div class="stats">
+        <div class="stat"><span class="num">149</span><span class="lbl">days, 1 June – 27 October</span></div>
+        <div class="stat"><span class="num">122 + 27</span><span class="lbl">June–September + October</span></div>
+        <div class="stat"><span class="num">2,112</span><span class="lbl">hourly reports, 88 report days</span></div>
+      </div>
+      <div class="callout">Days when the plant was off or sent no plan are marked and counted apart.</div>
+      <div class="traps">
+        <div><b>Trap 1 · time zone</b><br>Plan cards are UTC+1 → moved +4 h to plant time.</div>
+        <div><b>Trap 2 · report day</b><br>A day runs 04:00 → 03:00 the next morning, not midnight.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" aria-label="Slide 3: Method">
+    <div class="inner">
+      <h2>Method</h2>
+      <div class="cols">
+        <div>
+          <h3>Three simple forecasts</h3>
+          <ul>
+            <li>Yesterday's real output</li>
+            <li>7-day median</li>
+            <li>The plant's plan</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Two weather models</h3>
+          <ul>
+            <li>Line: sun + temperature</li>
+            <li>Small random forest</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout">Rule: learn only on the past; test on days the model never saw.</div>
+      <div class="result">
+        <span>September, held back</span>
+        <b>Weather models: 20.9% and 20.4% miss</b>
+        <b class="accent">Tomorrow = today: 6.8% miss</b>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" aria-label="Slide 4: My number">
+    <div class="inner">
+      <h2>My number: the October exam</h2>
+      <p class="lead">26 normal days the forecast never saw. 4 October outage counted apart.</p>
+      <table class="cmp">
+        <thead>
+          <tr><th></th><th>Plant plan</th><th>My forecast</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Daily accuracy</td><td>75%</td><td class="good">83%</td></tr>
+          <tr><td>Daily miss</td><td>1,651 kWh</td><td class="good">1,110 kWh <small>≈ one third smaller</small></td></tr>
+          <tr><td>Days within 10%</td><td>10 of 26</td><td class="good">15 of 26</td></tr>
+          <tr><td>Hourly miss</td><td>76.3 kWh</td><td class="good">52.7 kWh</td></tr>
+          <tr><td>Hours within 10%</td><td>84 of 292</td><td class="good">155 of 292</td></tr>
+        </tbody>
+      </table>
+      <div class="example">2 September · real 8,355 kWh · mine <b>7,870 (−5.8%)</b> · plan 5,192 (−37.9%)</div>
+    </div>
+  </section>
+
+  <section class="slide" aria-label="Slide 5: Limits">
+    <div class="inner">
+      <h2>Limits</h2>
+      <ul class="clean">
+        <li><b>Cloudy days:</b> 30 Sep real fell to 4,631 kWh; my forecast +59.6%, plan +63.5%.</li>
+        <li><b>1 Oct:</b> my forecast 4,631 vs real 1,679 kWh.</li>
+        <li><b>Outages:</b> 4 Oct is counted apart, not hidden in the average.</li>
+        <li><b>Honesty:</b> September was looked at many times, so October is the honest test.</li>
+        <li><b>Open question:</b> when must the plan be sent? In September I beat the plan even 3 days early: 11.7% vs 13.4%.</li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<div class="hint">← → or space to move</div>
+<div class="nav">
+  <button id="prev" type="button" aria-label="Previous slide">←</button>
+  <span id="counter" aria-live="polite">1 / 5</span>
+  <button id="next" type="button" aria-label="Next slide">→</button>
+</div>
+<div class="progress"><div id="bar"></div></div>
+
+<script>
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var counter = document.getElementById('counter');
+  var prev = document.getElementById('prev');
+  var next = document.getElementById('next');
+  var bar = document.getElementById('bar');
+  var current = 0;
+
+  function show(n) {
+    current = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function (slide, k) {
+      slide.classList.toggle('is-active', k === current);
+      slide.setAttribute('aria-hidden', k === current ? 'false' : 'true');
+    });
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    prev.disabled = current === 0;
+    next.disabled = current === slides.length - 1;
+    bar.style.width = ((current + 1) / slides.length * 100) + '%';
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.code === 'Space' || e.key === 'Enter') {
+      e.preventDefault();
+      show(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') {
+      e.preventDefault();
+      show(current - 1);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      show(0);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      show(slides.length - 1);
+    }
+  });
+
+  prev.addEventListener('click', function () { show(current - 1); });
+  next.addEventListener('click', function () { show(current + 1); });
+
+  show(0);
+})();
+</script>
+</body>
+</html>
