@@ -2,7 +2,7 @@
 
 A day-ahead output forecast for a solar plant. The main forecast is simple: use yesterday's real output as tomorrow's forecast. The project checks that forecast against the plant's plan, day by day, and also splits the daily total into hours.
 
-Public page: **https://kitan-a.com/frp/pub/s06/solar/**
+Public page: **https://zhureswe.github.io/solar-yield-predictor/solar/**
 
 ## What is here
 

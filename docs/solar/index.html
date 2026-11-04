@@ -1,0 +1,2064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solar yield — tomorrow, Kargaly</title>
+<style>
+  :root {
+    --ink: #16241d;
+    --muted: #5a6b62;
+    --line: #d8e2db;
+    --paper: #f7faf8;
+    --card: #ffffff;
+    --green: #1f6b45;
+    --green-soft: #e3f2ea;
+    --sun: #e0a21a;
+    --sun-soft: #fbf1d6;
+    --bad: #a33a2c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 48px; }
+  header { margin-bottom: 20px; }
+  .head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .lang {
+    flex: none;
+    padding: 8px 12px;
+    border: 1px solid var(--green);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--green);
+    font: 700 0.82rem/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    cursor: pointer;
+  }
+  .lang:hover { background: var(--green-soft); }
+  .lang:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+  @media (max-width: 420px) { .head { flex-direction: column; } }
+  h1 { font-size: 1.6rem; line-height: 1.2; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+  h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .weather { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; }
+  .sun { font-size: 1.4rem; font-weight: 650; color: var(--sun); }
+  .note { color: var(--muted); font-size: 0.9rem; margin: 8px 0 0; }
+  .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .inputs { grid-template-columns: 1fr; } }
+  label { display: block; font-weight: 600; margin-bottom: 4px; }
+  input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font: inherit;
+    background: #fff;
+  }
+  input[type="number"]:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+  .hint { color: var(--muted); font-size: 0.82rem; margin: 4px 0 0; }
+  .out { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+  @media (max-width: 640px) { .out { grid-template-columns: 1fr; } }
+  .box { border-radius: 12px; padding: 12px; border: 1px solid var(--line); background: #fff; }
+  .box .k { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .box .v { font-size: 1.55rem; font-weight: 700; margin-top: 2px; }
+  .box.mine { background: var(--green-soft); border-color: #b9dcc9; }
+  .box.mine .v { color: var(--green); }
+  .box.plan .v { color: #334; }
+  .box.diff { background: var(--sun-soft); border-color: #f0dcae; }
+  .box.diff .v { color: #7a5608; }
+  .chart { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin-top: 6px; }
+  .col { display: flex; flex-direction: column; justify-content: flex-end; min-width: 0; }
+  .bar-area { height: 130px; display: flex; align-items: flex-end; }
+  .bar { width: 100%; min-height: 2px; background: linear-gradient(180deg, #f2c14e, #e0a21a); border-radius: 3px 3px 0 0; }
+  .hour { font-size: 9px; color: var(--muted); text-align: center; padding-top: 3px; height: 14px; }
+  .msg { margin-top: 12px; font-size: 0.9rem; color: var(--muted); min-height: 1.4em; }
+  .msg.error { color: var(--bad); font-weight: 600; }
+  footer { color: var(--muted); font-size: 0.8rem; margin-top: 22px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .rule { background: var(--green-soft); border-radius: 8px; padding: 8px 10px; font-size: 0.88rem; margin-top: 10px; }
+  .past { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .past { grid-template-columns: 1fr; } }
+  .day { border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: #fff; }
+  .day h3 { margin: 0 0 8px; font-size: 0.95rem; }
+  .day h3 span { color: var(--muted); font-weight: 400; font-size: 0.82rem; }
+  .day dl { margin: 0; }
+  .day dl div { display: flex; justify-content: space-between; gap: 10px; padding: 2px 0; }
+  .day dt { color: var(--muted); font-size: 0.88rem; }
+  .day dd { margin: 0; font-weight: 650; font-variant-numeric: tabular-nums; text-align: right; }
+  .day dd .miss { display: block; font-weight: 400; font-size: 0.78rem; color: var(--muted); }
+  .tblwrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 4px; }
+  caption { text-align: left; font-weight: 650; padding: 10px 0 6px; font-size: 0.88rem; color: var(--ink); }
+  th, td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; white-space: normal; }
+  th { color: var(--muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  caption .nw { white-space: nowrap; }
+  @media (max-width: 480px) {
+    table { font-size: 0.78rem; }
+    th, td { padding: 6px 4px; }
+    th { font-size: 0.66rem; letter-spacing: 0; }
+    th:first-child, td:first-child { max-width: 74px; }
+  }
+  tr.best td { background: var(--green-soft); color: var(--green); font-weight: 700; }
+  tr.noted td { color: var(--muted); }
+  .file {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px dashed #b9dcc9;
+    border-radius: 10px;
+    background: #fff;
+    font: inherit;
+  }
+  .file:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+  .privacy {
+    margin: 10px 0 0;
+    padding: 9px 11px;
+    border-radius: 8px;
+    background: var(--sun-soft);
+    color: #6b4a07;
+    font-size: 0.88rem;
+  }
+  .hero {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 12px;
+    margin-top: 14px;
+    padding: 16px;
+    border: 1px solid #b9dcc9;
+    border-radius: 14px;
+    background: var(--green-soft);
+  }
+  @media (max-width: 640px) { .hero { grid-template-columns: 1fr; } }
+  .hero-k { margin: 0; color: var(--muted); font-weight: 600; }
+  .hero-v { margin: 2px 0 4px; font-size: 2.1rem; line-height: 1.1; font-weight: 800; color: var(--green); }
+  .hero-acc { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 420px) { .hero-acc { grid-template-columns: 1fr; } }
+  .hero-acc > div { padding: 10px; border: 1px solid #cfe6da; border-radius: 10px; background: #fff; }
+  .hero-acc span { display: block; color: var(--muted); font-size: 0.78rem; }
+  .hero-acc strong { display: block; margin-top: 2px; font-size: 1.3rem; color: var(--ink); }
+  .hero-acc small { display: block; margin-top: 2px; color: var(--muted); font-size: 0.78rem; }
+  .plant-chart { margin-top: 10px; }
+  .plant-chart .bar { background: linear-gradient(180deg, #4b9b6f, #1f6b45); }
+  .summary { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 640px) { .summary { grid-template-columns: 1fr; } }
+  .summary .v { font-size: 1.25rem; }
+  .upload-scroll { max-height: 430px; overflow: auto; }
+  #uploadResult { margin-top: 14px; }
+  .drop {
+    position: relative;
+    margin-top: 8px;
+    padding: 22px 16px;
+    border: 2px dashed #b9dcc9;
+    border-radius: 12px;
+    background: #fbfffc;
+    text-align: center;
+    cursor: pointer;
+  }
+  .drop.over { border-color: var(--green); background: var(--green-soft); }
+  .drop:focus-within { outline: 2px solid var(--green); outline-offset: 2px; }
+  .drop-title { margin: 0 0 12px; font-size: 1.1rem; font-weight: 700; }
+  .drop input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+  }
+  .drop .hint { margin: 0; }
+  .plant-issues {
+    max-height: 150px;
+    overflow: auto;
+    margin: 10px 0 0;
+    padding-left: 20px;
+    color: var(--bad);
+    font-size: 0.85rem;
+  }
+  .plant-issues li { margin: 3px 0; }
+  .plant-day { display: flex; gap: 10px; align-items: center; margin: 10px 0; }
+  .plant-day select {
+    padding: 6px 8px;
+    border: 1px solid #b9dcc9;
+    border-radius: 8px;
+    background: #fff;
+    font: inherit;
+  }
+  td.bad { color: var(--bad); font-weight: 600; }
+  td.ok { color: var(--green); font-weight: 700; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+<main>
+  <header>
+    <div class="head">
+      <div>
+        <h1>Solar yield — tomorrow</h1>
+        <p class="sub">Upload the plant's files and see tomorrow's forecast, my accuracy and the plant plan accuracy.</p>
+      </div>
+      <button class="lang" id="langToggle" type="button">RU / EN</button>
+    </div>
+  </header>
+
+  <section class="card" aria-labelledby="uploadTitle">
+    <h2 id="uploadTitle">Check the plant's files</h2>
+    <p class="note">Drop all the plant's files at once. The page sees by itself what each file is: a daily report, a plan card, a plan-fact Excel or a CSV.</p>
+    <div class="drop" id="plantDrop" role="button" tabindex="0" aria-label="Drop the plant's files here, or choose files">
+      <p class="drop-title">Drop the plant's files here, or choose files</p>
+      <input class="file" id="allFiles" type="file" multiple accept=".csv,.xlsx,.xls">
+      <p class="hint">Daily reports, plan cards, a plan-fact Excel or a CSV — all at once.</p>
+    </div>
+    <p class="privacy">Your file never leaves your browser: nothing is uploaded or saved.</p>
+    <p class="msg" id="readMsg"></p>
+    <p class="msg" id="plantMsg"></p>
+    <ul class="plant-issues" id="plantIssues" hidden></ul>
+    <div class="hero" id="heroResult" hidden>
+      <div>
+        <p class="hero-k" id="heroLabel">Forecast for —</p>
+        <p class="hero-v" id="heroValue">—</p>
+        <p class="hint" id="heroSource"></p>
+      </div>
+      <div class="hero-acc">
+        <div><span>My accuracy</span><strong id="heroMine">—</strong><small id="heroMineWithin">—</small></div>
+        <div><span>Plant plan accuracy</span><strong id="heroPlan">—</strong><small id="heroPlanWithin">—</small></div>
+      </div>
+    </div>
+    <div id="plantResult" hidden>
+      <p class="note" id="plantCount"></p>
+      <div id="plantHourlyWrap" hidden>
+        <h3 id="plantHourlyTitle">Hours on a chosen day</h3>
+        <div class="plant-day">
+          <label for="plantDay">Day</label>
+          <select id="plantDay"></select>
+        </div>
+        <div class="chart plant-chart" id="plantChart" aria-label="Hourly forecast for the chosen day"></div>
+        <p class="note" id="plantHourlyNote"></p>
+        <div class="tblwrap upload-scroll">
+          <table>
+            <caption>Hourly for the selected day — H4 shape of the last 7 clean days</caption>
+            <thead>
+              <tr><th>Hour</th><th>My forecast</th><th>Real</th><th>Plan</th></tr>
+            </thead>
+          <tbody id="plantHourlyBody"></tbody>
+        </table>
+        </div>
+      </div>
+      <div id="plantDailyWrap" hidden>
+        <h3 id="plantDailyTitle">Daily results</h3>
+        <p class="note">My forecast is the last clean day's real output. The first day has no yesterday; the first 7 days have a shorter H4 shape history.</p>
+        <div class="tblwrap upload-scroll">
+          <table>
+            <caption>Daily by date — days with a note are not scored</caption>
+            <thead>
+              <tr><th>Date</th><th>My forecast</th><th>Real</th><th>Plan</th><th>My accuracy %</th><th>Plan accuracy %</th><th>Note</th></tr>
+            </thead>
+            <tbody id="plantDailyBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="plantNextWrap" hidden>
+        <h3 id="plantNextTitle">Tomorrow's 24-hour forecast</h3>
+        <p class="note" id="plantNextNote"></p>
+        <div class="tblwrap upload-scroll">
+          <table>
+            <caption>Next day — my forecast and the plant plan; real output is not in yet</caption>
+            <thead>
+              <tr><th>Hour</th><th>My forecast</th><th>Plan</th></tr>
+            </thead>
+            <tbody id="plantNextBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="tblwrap upload-scroll">
+        <table>
+          <caption>Checked by date — no names and no row 35</caption>
+          <thead>
+            <tr><th>Date</th><th>Report</th><th>Plan</th><th>Status</th></tr>
+          </thead>
+          <tbody id="plantTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <p class="msg" id="uploadMsg"></p>
+    <div id="uploadResult" hidden>
+      <p class="note" id="uploadCount"></p>
+      <div class="tblwrap upload-scroll">
+        <table>
+          <caption>Your days — days with a note are shown but not scored</caption>
+          <thead>
+            <tr><th>Date</th><th>My forecast</th><th>Real</th><th>Plan</th><th>My accuracy %</th><th>Plan accuracy %</th><th>Note</th></tr>
+          </thead>
+          <tbody id="uploadTableBody"></tbody>
+        </table>
+      </div>
+      <div class="tblwrap" id="uploadMonths" hidden>
+        <table>
+          <caption>By month — scored days only</caption>
+          <thead>
+            <tr><th>Month</th><th>Days</th><th>My accuracy %</th><th>My ≤10%</th><th>Plan accuracy %</th><th>Plan ≤10%</th></tr>
+          </thead>
+          <tbody id="uploadMonthsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="weatherTitle">
+    <h2 id="weatherTitle">Tomorrow's sun forecast</h2>
+    <div class="weather">
+      <span class="sun" id="sunDaily">—</span>
+      <span>MJ/m² daily sum (Open-Meteo)</span>
+    </div>
+    <p class="sub">Kargaly solar plant · 42.866 N, 68.376 E · time zone Asia/Almaty</p>
+    <p class="sub" id="dateLine">Tomorrow: —</p>
+    <p class="note" id="weatherNote">Loading the weather forecast…</p>
+  </section>
+
+  <section class="card" aria-labelledby="calcTitle">
+    <h2 id="calcTitle">My forecast</h2>
+    <div class="inputs">
+      <div>
+        <label for="todayReal">Today's real output, kWh</label>
+        <input id="todayReal" type="number" min="0" step="1" inputmode="decimal" placeholder="type the meter value">
+        <p class="hint">Use the last clean day if today was an outage or a zero-plan day.</p>
+      </div>
+      <div>
+        <label for="tomorrowPlan">Plant's plan for tomorrow, kWh</label>
+        <input id="tomorrowPlan" type="number" min="0" step="1" inputmode="decimal" placeholder="type the plan">
+        <p class="hint">Leave empty if the plan is not known yet.</p>
+      </div>
+    </div>
+
+    <div class="out">
+      <div class="box mine"><div class="k">My forecast</div><div class="v" id="forecastValue">—</div></div>
+      <div class="box plan"><div class="k">Plant plan</div><div class="v" id="planValue">—</div></div>
+      <div class="box diff"><div class="k">Difference (my forecast − plan)</div><div class="v" id="diffValue">—</div></div>
+    </div>
+    <p class="rule">Rule from PLAN.md: <strong>my forecast = today's real output</strong> (yesterday's real kWh is the chosen rule; see my results below).</p>
+    <p class="msg" id="liveMsg"></p>
+  </section>
+
+  <section class="card" aria-labelledby="chartTitle">
+    <h2 id="chartTitle">Hourly split by tomorrow's sun</h2>
+    <div class="chart" id="chart" aria-label="Hourly forecast, 00 to 23"></div>
+    <p class="note" id="chartNote">Type today's real output to split it into hours in proportion to the hourly sun forecast. Hours with no sun get 0.</p>
+  </section>
+
+  <section class="card" aria-labelledby="pastTitle">
+    <h2 id="pastTitle">Two past days</h2>
+    <div class="past">
+      <div class="day">
+        <h3>2 September 2026 <span>a good day</span></h3>
+        <dl>
+          <div><dt>Real output</dt><dd>8,355 kWh</dd></div>
+          <div><dt>My forecast</dt><dd>7,870 kWh<span class="miss">−5.8% vs real</span></dd></div>
+          <div><dt>Plant plan</dt><dd>5,192 kWh<span class="miss">−37.9% vs real</span></dd></div>
+        </dl>
+      </div>
+      <div class="day">
+        <h3>30 September 2026 <span>a cloudy day</span></h3>
+        <dl>
+          <div><dt>Real output</dt><dd>4,631 kWh</dd></div>
+          <div><dt>My forecast</dt><dd>7,392 kWh<span class="miss">+59.6% vs real</span></dd></div>
+          <div><dt>Plant plan</dt><dd>7,573 kWh<span class="miss">+63.5% vs real</span></dd></div>
+        </dl>
+      </div>
+    </div>
+    <p class="rule">September was already used to check the models, so these two days are examples, not a fresh exam.</p>
+    <p class="note">Real values from the September test; per-day numbers are rounded to the nearest kWh.</p>
+  </section>
+
+  <section class="card" aria-labelledby="resultsTitle">
+    <h2 id="resultsTitle">My results — June to October</h2>
+    <p class="note">Miss = average |forecast − real| per day. Miss % = miss divided by the month's average real output. Accuracy = 100% − miss %. &le;10% = days the forecast was within 10% of the real value (for example 10/25). July and September: <code>results/summary.md</code>; October: <code>results/october_exam.csv</code>.</p>
+    <p class="rule"><strong>Demo Day:</strong> on the <strong>26 clean unseen October days</strong>, my forecast (yesterday's real kWh) would have cut the plant's daily imbalance by <strong>33%</strong> (1,651.382 → 1,109.877 kWh) and the hourly miss by <strong>31%</strong> (76.301 → 52.687 kWh/h).</p>
+    <div class="tblwrap">
+      <table>
+        <caption>July 2026 — 25 clean days · <span class="nw">average real 4,768 kWh</span></caption>
+        <thead>
+          <tr><th>Forecast</th><th>Miss kWh</th><th>Miss %</th><th>Acc.</th><th>&le;10%</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Plant plan</td><td>879.280</td><td>18.44%</td><td>81.56%</td><td>10/25</td></tr>
+          <tr><td>Yesterday</td><td>622.280</td><td>13.05%</td><td>86.95%</td><td>14/25</td></tr>
+          <tr><td>7-day median</td><td>723.640</td><td>15.18%</td><td>84.82%</td><td>13/25</td></tr>
+          <tr><td>My model (A)</td><td>974.721</td><td>20.44%</td><td>79.56%</td><td>8/25</td></tr>
+          <tr><td>My model 2</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+          <tr><td>My model 3</td><td>610.367</td><td>12.80%</td><td>87.20%</td><td>10/25</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tblwrap">
+      <table>
+        <caption>September 2026 — 30 days · <span class="nw">average real 7,556 kWh</span></caption>
+        <thead>
+          <tr><th>Forecast</th><th>Miss kWh</th><th>Miss %</th><th>Acc.</th><th>&le;10%</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Plant plan</td><td>1,015.100</td><td>13.43%</td><td>86.57%</td><td>12/30</td></tr>
+          <tr class="best"><td>Yesterday</td><td>512.600</td><td>6.78%</td><td>93.22%</td><td>23/30</td></tr>
+          <tr><td>7-day median</td><td>799.300</td><td>10.58%</td><td>89.42%</td><td>17/30</td></tr>
+          <tr><td>My model (A)</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+          <tr><td>My model 2</td><td>1,576.493</td><td>20.86%</td><td>79.14%</td><td>5/30</td></tr>
+          <tr><td>My model 3</td><td>1,542.506</td><td>20.41%</td><td>79.59%</td><td>1/30</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tblwrap">
+      <table>
+        <caption>October 2026 — 26 clean days · <span class="nw">4 October (outage) counted apart</span></caption>
+        <thead>
+          <tr><th>Forecast</th><th>Miss kWh</th><th>Miss %</th><th>Acc.</th><th>&le;10%</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Plant plan</td><td>1,651.382</td><td>24.96%</td><td>75.04%</td><td>10/26</td></tr>
+          <tr><td>Yesterday</td><td>1,109.877</td><td>16.78%</td><td>83.22%</td><td>15/26</td></tr>
+          <tr><td>7-day median</td><td>1,011.987</td><td>15.30%</td><td>84.70%</td><td>15/26</td></tr>
+          <tr><td>Cloud rule (T=30%)</td><td>1,018.777</td><td>15.40%</td><td>84.60%</td><td>15/26</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tblwrap">
+      <table>
+        <caption>October 2026 — hourly shape · <span class="nw">26 clean days, 292 producing hours</span></caption>
+        <thead>
+          <tr><th>Forecast</th><th>Miss kWh/h</th><th>Miss %</th><th>Acc.</th><th>&le;10% h</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Plant plan</td><td>76.301</td><td>27.68%</td><td>72.32%</td><td>84/292</td></tr>
+          <tr><td>My hourly (H4)</td><td>52.687</td><td>19.11%</td><td>80.89%</td><td>155/292</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tblwrap" id="byMonth">
+      <table>
+        <caption>By month — plan vs tomorrow = today · <span class="nw">source results/by_month.csv</span></caption>
+        <thead>
+          <tr><th>Month</th><th>Days</th><th>Plan kWh</th><th>Plan %</th><th>Mine kWh</th><th>Mine %</th><th>&le;10%</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>June</td><td>29</td><td>1,888.000</td><td>38.03%</td><td>1,485.621</td><td>29.92%</td><td>9/29</td></tr>
+          <tr><td>July</td><td>25</td><td>879.280</td><td>18.44%</td><td>621.200</td><td>13.03%</td><td>14/25</td></tr>
+          <tr><td>August</td><td>26</td><td>1,883.462</td><td>35.70%</td><td>1,250.923</td><td>23.71%</td><td>9/26</td></tr>
+          <tr><td>September</td><td>30</td><td>1,015.100</td><td>13.43%</td><td>512.600</td><td>6.78%</td><td>23/30</td></tr>
+          <tr><td>October</td><td>26</td><td>1,651.382</td><td>24.96%</td><td>1,109.877</td><td>16.78%</td><td>15/26</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="rule"><strong>My rule was closer than the plant plan in 5 of 5 months.</strong> Days with a note (outage / plan-zero) are left out, and 1 June has no previous day for either forecast.</p>
+    <p class="note">"—" means the forecast was never tested on that month, so there is no number. My model 3's July row comes from its search period, so it is descriptive, not a fresh test. September was used while choosing the models, so it is a check, not an unseen exam. October's methods were fixed before the exam, so October is the unseen test; 4 October (outage) is counted apart.</p>
+  </section>
+
+  <footer>
+    Weather: Open-Meteo forecast, free and without a key. Hourly bars show kWh; hover a bar for its sun value.
+    The page does not use names, Excel files or raw data.
+  </footer>
+</main>
+
+<script>
+  const API = 'https://api.open-meteo.com/v1/forecast?latitude=42.866&longitude=68.376'
+    + '&daily=shortwave_radiation_sum&hourly=shortwave_radiation'
+    + '&timezone=Asia%2FAlmaty&forecast_days=2';
+  const TZ = 'Asia/Almaty';
+  const STORAGE_KEY = 'solar-yield-lang';
+
+  const RU = {
+    "Solar yield — tomorrow": "Солнечная выработка — завтра",
+    "Upload the plant's files and see tomorrow's forecast, my accuracy and the plant plan accuracy.": "Загрузите файлы станции и увидите прогноз на завтра, мою точность и точность плана станции.",
+    "My accuracy": "Моя точность",
+    "Plant plan accuracy": "Точность плана станции",
+    "Forecast for —": "Прогноз на —",
+    "Kargaly solar plant · 42.866 N, 68.376 E · time zone Asia/Almaty": "Солнечная станция Каргалы · 42.866 с. ш., 68.376 в. д. · часовой пояс Asia/Almaty",
+    "Tomorrow: —": "Завтра: —",
+    "Tomorrow's sun forecast": "Прогноз солнца на завтра",
+    "MJ/m² daily sum (Open-Meteo)": "МДж/м² в сутки (Open-Meteo)",
+    "Loading the weather forecast…": "Загружаю прогноз погоды…",
+    "My forecast": "Мой прогноз",
+    "Today's real output, kWh": "Фактическая выработка сегодня, кВт·ч",
+    "Use the last clean day if today was an outage or a zero-plan day.": "Если сегодня была авария или нулевой план, укажите последний обычный день.",
+    "Plant's plan for tomorrow, kWh": "План станции на завтра, кВт·ч",
+    "Leave empty if the plan is not known yet.": "Оставьте пустым, если план ещё неизвестен.",
+    "Plant plan": "План станции",
+    "Difference (my forecast − plan)": "Разница (мой прогноз − план)",
+    "Rule from PLAN.md:": "Правило из PLAN.md:",
+    "my forecast = today's real output": "мой прогноз = фактическая выработка сегодня",
+    "(yesterday's real kWh is the chosen rule; see my results below).": "(выбранное правило — вчерашняя фактическая выработка; мои результаты ниже).",
+    "Hourly split by tomorrow's sun": "Разбивка по часам по солнцу на завтра",
+    "Type today's real output to split it into hours in proportion to the hourly sun forecast. Hours with no sun get 0.": "Введите фактическую выработку сегодня, чтобы разбить её по часам пропорционально прогнозу солнца. Часы без солнца получают 0.",
+    "Two past days": "Два прошедших дня",
+    "2 September 2026": "2 сентября 2026",
+    "a good day": "хороший день",
+    "Real output": "Фактическая выработка",
+    "8,355 kWh": "8 355 кВт·ч",
+    "7,870 kWh": "7 870 кВт·ч",
+    "−5.8% vs real": "−5,8% к факту",
+    "5,192 kWh": "5 192 кВт·ч",
+    "−37.9% vs real": "−37,9% к факту",
+    "30 September 2026": "30 сентября 2026",
+    "a cloudy day": "облачный день",
+    "4,631 kWh": "4 631 кВт·ч",
+    "7,392 kWh": "7 392 кВт·ч",
+    "+59.6% vs real": "+59,6% к факту",
+    "7,573 kWh": "7 573 кВт·ч",
+    "+63.5% vs real": "+63,5% к факту",
+    "September was already used to check the models, so these two days are examples, not a fresh exam.": "Сентябрь уже использовался для проверки моделей, поэтому эти два дня — примеры, а не новый экзамен.",
+    "Real values from the September test; per-day numbers are rounded to the nearest kWh.": "Фактические значения из сентябрьской проверки; дневные числа округлены до целых кВт·ч.",
+    "My results — June to October": "Мои результаты — с июня по октябрь",
+    "Miss = average |forecast − real| per day. Miss % = miss divided by the month's average real output. Accuracy = 100% − miss %. ≤10% = days the forecast was within 10% of the real value (for example 10/25). July and September:": "Ошибка = среднее |прогноз − факт| за день. Ошибка % = ошибка, делённая на среднюю фактическую выработку за месяц. Точность = 100% − ошибка %. ≤10% = дни, когда прогноз был в пределах 10% от факта (например, 10/25). Июль и сентябрь:",
+    "; October:": "; октябрь:",
+    "Demo Day:": "Демо-день:",
+    "on the": "на",
+    "26 clean unseen October days": "26 чистых непроверенных октябрьских днях",
+    ", my forecast (yesterday's real kWh) would have cut the plant's daily imbalance by": ", мой прогноз (вчерашняя фактическая выработка) сократил бы суточный дисбаланс станции на",
+    "(1,651.382 → 1,109.877 kWh) and the hourly miss by": "(1 651,382 → 1 109,877 кВт·ч), а почасовую ошибку — на",
+    "(76.301 → 52.687 kWh/h).": "(76,301 → 52,687 кВт·ч/ч).",
+    "July 2026 — 25 clean days ·": "Июль 2026 — 25 чистых дней ·",
+    "average real 4,768 kWh": "средний факт 4 768 кВт·ч",
+    "Forecast": "Прогноз",
+    "Miss kWh": "Ошибка, кВт·ч",
+    "Miss %": "Ошибка, %",
+    "Acc.": "Точн.",
+    "Yesterday": "Вчера",
+    "7-day median": "Медиана за 7 дней",
+    "My model (A)": "Моя модель (A)",
+    "My model 2": "Моя модель 2",
+    "My model 3": "Моя модель 3",
+    "September 2026 — 30 days ·": "Сентябрь 2026 — 30 дней ·",
+    "average real 7,556 kWh": "средний факт 7 556 кВт·ч",
+    "October 2026 — 26 clean days ·": "Октябрь 2026 — 26 чистых дней ·",
+    "4 October (outage) counted apart": "4 октября (авария) считается отдельно",
+    "Cloud rule (T=30%)": "Правило облаков (T=30%)",
+    "October 2026 — hourly shape ·": "Октябрь 2026 — почасовая форма ·",
+    "26 clean days, 292 producing hours": "26 чистых дней, 292 часа с выработкой",
+    "Miss kWh/h": "Ошибка, кВт·ч/ч",
+    "≤10% h": "≤10% ч",
+    "My hourly (H4)": "Мой почасовой (H4)",
+    "By month — plan vs tomorrow = today ·": "По месяцам — план и «завтра = сегодня» ·",
+    "source results/by_month.csv": "источник results/by_month.csv",
+    "Month": "Месяц",
+    "Days": "Дней",
+    "Plan kWh": "План, кВт·ч",
+    "Plan %": "План, %",
+    "Mine kWh": "Мой, кВт·ч",
+    "Mine %": "Мой, %",
+    "June": "Июнь",
+    "July": "Июль",
+    "August": "Август",
+    "September": "Сентябрь",
+    "October": "Октябрь",
+    "My rule was closer than the plant plan in 5 of 5 months.": "Моё правило было точнее плана станции в 5 месяцах из 5.",
+    "Days with a note (outage / plan-zero) are left out, and 1 June has no previous day for either forecast.": "Дни с пометкой (авария / нулевой план) исключены, а для 1 июня нет предыдущего дня ни для одного прогноза.",
+    "Check the plant's files": "Проверьте файлы станции",
+    "Drop all the plant's files at once. The page sees by itself what each file is: a daily report, a plan card, a plan-fact Excel or a CSV.": "Перетащите все файлы станции сразу. Страница сама определяет, что это за файл: суточный отчёт, карточка плана, план-факт Excel или CSV.",
+    "Drop the plant's files here, or choose files": "Перетащите файлы станции сюда или выберите файлы",
+    "Daily reports, plan cards, a plan-fact Excel or a CSV — all at once.": "Суточные отчёты, карточки плана, план-факт Excel или CSV — всё сразу.",
+    "Your file never leaves your browser: nothing is uploaded or saved.": "Ваш файл не покидает браузер: ничего не загружается и не сохраняется.",
+    "Checked by date — no names and no row 35": "Проверка по датам — без имён и без строки 35",
+    "Report": "Отчёт",
+    "Status": "Статус",
+    "OK": "OK",
+    "Missing report": "Нет отчёта",
+    "Missing plan": "Нет плана",
+    "File check failed": "Проверка файла не прошла",
+    "Duplicate report date": "Повторная дата отчёта",
+    "Duplicate plan date": "Повторная дата плана",
+    "24 h, sum OK": "24 ч, сумма сходится",
+    "No file": "Нет файла",
+    "Check failed": "Проверка не прошла",
+    "Daily results": "Результаты по дням",
+    "My forecast is the last clean day's real output. The first day has no yesterday; the first 7 days have a shorter H4 shape history.": "Мой прогноз — факт последнего обычного дня. У первого дня нет вчера, а у первых 7 дней короче история формы H4.",
+    "Daily by date — days with a note are not scored": "По дням — дни с пометкой не оцениваются",
+    "Hours on a chosen day": "Часы выбранного дня",
+    "Day": "День",
+    "Hour": "Час",
+    "Hourly for the selected day — H4 shape of the last 7 clean days": "По часам выбранного дня — форма H4 за последние 7 обычных дней",
+    "Next-day forecast": "Прогноз на следующий день",
+    "Tomorrow's 24-hour forecast": "Почасовой прогноз на завтра",
+    "Next day — my forecast and the plant plan; real output is not in yet": "Следующий день — мой прогноз и план станции; факта пока нет",
+    "My forecast — average accuracy": "Мой прогноз — средняя точность",
+    "Plant plan — average accuracy": "План станции — средняя точность",
+    "Forecast after the last date": "Прогноз на день после последней даты",
+    "Your days — days with a note are shown but not scored": "Ваши дни — дни с пометкой показаны, но не оценены",
+    "Date": "Дата",
+    "Real": "Факт",
+    "Plan": "План",
+    "My accuracy %": "Моя точность, %",
+    "Plan accuracy %": "Точность плана, %",
+    "Note": "Пометка",
+    "By month — scored days only": "По месяцам — только оценённые дни",
+    "My ≤10%": "Мой ≤10%",
+    "Plan ≤10%": "План ≤10%",
+    "\"—\" means the forecast was never tested on that month, so there is no number. My model 3's July row comes from its search period, so it is descriptive, not a fresh test. September was used while choosing the models, so it is a check, not an unseen exam. October's methods were fixed before the exam, so October is the unseen test; 4 October (outage) is counted apart.": "«—» значит, что прогноз не проверялся в этом месяце, поэтому числа нет. Июльская строка моей модели 3 взята из периода поиска, поэтому она описательная, а не новая проверка. Сентябрь использовался при выборе моделей, поэтому это проверка, а не невидимый экзамен. Методы октября были зафиксированы до экзамена, поэтому октябрь — непроверенный тест; 4 октября (авария) считается отдельно.",
+    "Weather: Open-Meteo forecast, free and without a key. Hourly bars show kWh; hover a bar for its sun value. The page does not use names, Excel files or raw data.": "Погода: прогноз Open-Meteo, бесплатно и без ключа. Столбцы показывают кВт·ч; наведите на столбец, чтобы увидеть солнце. Страница не использует имена, файлы Excel или сырые данные."
+  };
+  const EN = {};
+  Object.keys(RU).forEach(key => { EN[RU[key]] = key; });
+
+  const ATTRS = [
+    ['todayReal', 'placeholder', 'type the meter value', 'введите показание счётчика'],
+    ['tomorrowPlan', 'placeholder', 'type the plan', 'введите план'],
+    ['chart', 'aria-label', 'Hourly forecast, 00 to 23', 'Почасовой прогноз, 00–23'],
+    ['plantChart', 'aria-label', 'Hourly forecast for the chosen day', 'Почасовой прогноз на выбранный день']
+  ];
+
+  const weather = { state: 'loading', error: null, tomorrow: null, dailySun: null, hours: [], sun: [] };
+  const upload = { state: 'idle', error: null, result: null };
+  const plant = { state: 'idle', fileCount: 0, error: null, result: null, selectedDay: '', elapsedMs: null };
+  const read = { state: 'idle', fileCount: 0, reportCount: 0, planCount: 0, otherCount: 0, errorCount: 0 };
+
+  let lang = 'en';
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved === 'ru' || saved === 'en') lang = saved;
+  } catch (error) {
+    console.warn('Language choice could not be read: ' + error.message);
+  }
+
+  function $(id) { return document.getElementById(id); }
+
+  function t(en, ru) { return lang === 'ru' ? ru : en; }
+
+  function tomorrowInAlmaty() {
+    const today = new Intl.DateTimeFormat('en-CA', {
+      timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit'
+    }).format(new Date());
+    const [y, m, d] = today.split('-').map(Number);
+    return new Date(Date.UTC(y, m - 1, d) + 86400000).toISOString().slice(0, 10);
+  }
+
+  function longDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso + 'T12:00:00Z');
+    return new Intl.DateTimeFormat(lang === 'ru' ? 'ru-RU' : 'en-GB', {
+      timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    }).format(d);
+  }
+
+  function num(id) {
+    const raw = $(id).value.trim();
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  }
+
+  function kwh(n) {
+    return new Intl.NumberFormat(lang === 'ru' ? 'ru-RU' : 'en-US', { maximumFractionDigits: 0 }).format(n)
+      + t(' kWh', ' кВт·ч');
+  }
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+
+  function pluralEn(n, one, many) { return n === 1 ? one : many; }
+
+  function formatKwh(n) {
+    if (n === null || n === undefined || !Number.isFinite(n)) return '—';
+    return new Intl.NumberFormat(lang === 'ru' ? 'ru-RU' : 'en-US', { maximumFractionDigits: 3 }).format(n)
+      + t(' kWh', ' кВт·ч');
+  }
+
+  function formatPct(n) {
+    if (n === null || n === undefined || !Number.isFinite(n)) return '—';
+    return new Intl.NumberFormat(lang === 'ru' ? 'ru-RU' : 'en-US', {
+      minimumFractionDigits: 2, maximumFractionDigits: 2
+    }).format(n) + '%';
+  }
+
+  function monthName(key) {
+    const d = new Date(key + '-01T12:00:00Z');
+    return new Intl.DateTimeFormat(lang === 'ru' ? 'ru-RU' : 'en-GB', {
+      timeZone: 'UTC', month: 'long', year: 'numeric'
+    }).format(d);
+  }
+
+  function uploadError(code, extra) {
+    const error = new Error(code);
+    error.code = code;
+    if (extra) Object.assign(error, extra);
+    return error;
+  }
+
+  function parseNumber(value) {
+    if (typeof value === 'number') return Number.isFinite(value) && value >= 0 ? value : null;
+    if (value === null || value === undefined) return null;
+    let text = String(value).replace(/^\uFEFF/, '').replace(/[\s\u00a0]/g, '').trim();
+    if (!text) return null;
+    if (text.includes(',') && text.includes('.')) text = text.replace(/,/g, '');
+    else if (text.includes(',')) text = text.replace(',', '.');
+    const n = Number(text);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  }
+
+  function dateFromValue(value) {
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+      return value.getUTCFullYear() + '-' + pad2(value.getUTCMonth() + 1) + '-' + pad2(value.getUTCDate());
+    }
+    if (typeof value === 'number' && Number.isFinite(value) && typeof XLSX !== 'undefined') {
+      const parsed = XLSX.SSF.parse_date_code(value);
+      if (parsed && parsed.y >= 1900) return parsed.y + '-' + pad2(parsed.m) + '-' + pad2(parsed.d);
+    }
+    const text = String(value === null || value === undefined ? '' : value).trim();
+    let match = text.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})/);
+    if (match) return match[1] + '-' + pad2(match[2]) + '-' + pad2(match[3]);
+    match = text.match(/^(\d{1,2})[-./](\d{1,2})[-./](\d{4})/);
+    if (match) return match[3] + '-' + pad2(match[2]) + '-' + pad2(match[1]);
+    match = text.match(/^(\d{1,2})[-./](\d{1,2})[-./](\d{2})$/);
+    if (match) return (2000 + Number(match[3])) + '-' + pad2(match[2]) + '-' + pad2(match[1]);
+    return '';
+  }
+
+  function normalizeHeader(value) {
+    return String(value === null || value === undefined ? '' : value)
+      .replace(/^\uFEFF/, '').trim().toLowerCase();
+  }
+
+  function parseCsv(text) {
+    const rows = [];
+    let row = [];
+    let field = '';
+    let quoted = false;
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      if (quoted) {
+        if (char === '"') {
+          if (text[i + 1] === '"') {
+            field += '"';
+            i++;
+          } else {
+            quoted = false;
+          }
+        } else {
+          field += char;
+        }
+      } else if (char === '"') {
+        quoted = true;
+      } else if (char === ',') {
+        row.push(field);
+        field = '';
+      } else if (char === '\n') {
+        row.push(field);
+        rows.push(row);
+        row = [];
+        field = '';
+      } else if (char === '\r') {
+        if (text[i + 1] === '\n') i++;
+        row.push(field);
+        rows.push(row);
+        row = [];
+        field = '';
+      } else {
+        field += char;
+      }
+    }
+    if (field.length || row.length) {
+      row.push(field);
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  function noteFor(row) {
+    if (row.plan === null) return '';
+    if (row.real < 0.10 * row.plan) return 'outage';
+    if (row.plan < 0.10 * row.real) return 'plan_zero';
+    return '';
+  }
+
+  function finishRows(rows, skipped) {
+    if (!rows.length) throw uploadError('empty');
+    rows.sort((a, b) => a.date.localeCompare(b.date));
+    const seen = new Set();
+    rows.forEach(row => {
+      if (seen.has(row.date)) throw uploadError('duplicate', { date: row.date });
+      seen.add(row.date);
+    });
+    rows.forEach(row => { row.note = noteFor(row); });
+    return { rows, skipped };
+  }
+
+  function rowsFromCsv(text) {
+    const matrix = parseCsv(text);
+    const realNames = ['real_kwh', 'real', 'факт'];
+    const planNames = ['plan_kwh', 'plan', 'план'];
+    const headerIndex = matrix.findIndex(row =>
+      row.some(cell => normalizeHeader(cell) === 'date')
+      && row.some(cell => realNames.includes(normalizeHeader(cell)))
+    );
+    if (headerIndex < 0) throw uploadError('header');
+    const headers = matrix[headerIndex].map(normalizeHeader);
+    const dateIndex = headers.findIndex(h => h === 'date' || h === 'дата');
+    const realIndex = headers.findIndex(h => realNames.includes(h));
+    const planIndex = headers.findIndex(h => planNames.includes(h));
+    if (dateIndex < 0 || realIndex < 0) throw uploadError('header');
+    const rows = [];
+    let skipped = 0;
+    for (let i = headerIndex + 1; i < matrix.length; i++) {
+      const cells = matrix[i];
+      if (!cells || cells.every(cell => String(cell).trim() === '')) continue;
+      const date = dateFromValue(cells[dateIndex]);
+      const real = parseNumber(cells[realIndex]);
+      const plan = planIndex >= 0 ? parseNumber(cells[planIndex]) : null;
+      if (!date || real === null) {
+        skipped++;
+        continue;
+      }
+      rows.push({ date, real, plan });
+    }
+    return finishRows(rows, skipped);
+  }
+
+  function rowsFromBook(book) {
+    const sheet = book.Sheets.ImbalanceData;
+    if (!sheet) throw uploadError('sheet', { sheets: book.SheetNames.join(', ') || 'none' });
+    const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null, blankrows: true });
+    const headerIndex = matrix.slice(0, 10).findIndex(row =>
+      row && [2, 6, 8].some(i => ['date', 'дата'].includes(normalizeHeader(row[i])))
+    );
+    const start = headerIndex >= 0 ? headerIndex + 1 : 5;
+    const rows = [];
+    let skipped = 0;
+    for (let i = start; i < matrix.length; i++) {
+      const cells = matrix[i];
+      if (!cells) continue;
+      const date = dateFromValue(cells[2]);
+      const plan = parseNumber(cells[6]);
+      const real = parseNumber(cells[8]);
+      if (!date && real === null) continue;
+      if (!date || real === null) {
+        skipped++;
+        continue;
+      }
+      rows.push({ date, real, plan });
+    }
+    return finishRows(rows, skipped);
+  }
+
+  async function readWorkbook(file) {
+    if (typeof XLSX === 'undefined') {
+      throw uploadError('library', { date: dateFromFileName(file.name) });
+    }
+    try {
+      return XLSX.read(new Uint8Array(await file.arrayBuffer()), { type: 'array', cellDates: false });
+    } catch (error) {
+      throw uploadError('read', { date: dateFromFileName(file.name), message: error.message });
+    }
+  }
+
+  async function readUpload(file) {
+    const name = file.name.toLowerCase();
+    if (name.endsWith('.csv')) return rowsFromCsv(await file.text());
+    if (name.endsWith('.xlsx') || name.endsWith('.xls')) return rowsFromBook(await readWorkbook(file));
+    throw uploadError('format');
+  }
+
+  function dateFromFileName(name) {
+    const base = String(name || '').split(/[\\/]/).pop();
+    let match = base.match(/(\d{4})-(\d{2})-(\d{2})\.(?:xlsx|xls)$/i);
+    if (match) return match[1] + '-' + match[2] + '-' + match[3];
+    match = base.match(/(\d{1,2})\.(\d{2})\.(\d{2,4})\.(?:xlsx|xls)$/i);
+    if (match) {
+      const year = Number(match[3]) < 100 ? 2000 + Number(match[3]) : Number(match[3]);
+      return year + '-' + pad2(match[2]) + '-' + pad2(match[1]);
+    }
+    return '';
+  }
+
+  function columnName(n) {
+    let name = '';
+    while (n > 0) {
+      const rem = (n - 1) % 26;
+      name = String.fromCharCode(65 + rem) + name;
+      n = Math.floor((n - 1) / 26);
+    }
+    return name;
+  }
+
+  function cellValue(sheet, address) {
+    const cell = sheet[address];
+    return cell ? cell.v : null;
+  }
+
+  function dailyHourNumber(value) {
+    if (typeof value === 'number') return Math.round(value * 24);
+    const text = String(value === null || value === undefined ? '' : value).trim();
+    const match = text.match(/^(\d{1,2}):(\d{2})/);
+    if (match) return Number(match[1]) + Number(match[2]) / 60;
+    return NaN;
+  }
+
+  function parsePlantReport(sheet, fileName) {
+    const date = dateFromValue(cellValue(sheet, 'C4'));
+    const nameDate = dateFromFileName(fileName);
+    if (!date) throw uploadError('plant-report', { date: nameDate, detail: 'report-date' });
+    if (nameDate && nameDate !== date) {
+      throw uploadError('plant-report', { date, detail: 'report-name-date', fileDate: nameDate });
+    }
+
+    const astana = String(cellValue(sheet, 'A6') === null ? '' : cellValue(sheet, 'A6'));
+    const utc1 = String(cellValue(sheet, 'A7') === null ? '' : cellValue(sheet, 'A7'));
+    const output = String(cellValue(sheet, 'A8') === null ? '' : cellValue(sheet, 'A8'));
+    const totalHeader = String(cellValue(sheet, 'B10') === null ? '' : cellValue(sheet, 'B10'));
+    if (!astana.includes('Астана') || !utc1.includes('Среднеевропейско')
+        || !output.includes('Wакт. Отдача') || !totalHeader.includes('ИТОГО')) {
+      throw uploadError('plant-report', { date, detail: 'report-header' });
+    }
+
+    const ends = [];
+    for (let i = 0; i < 24; i++) {
+      ends.push(dailyHourNumber(cellValue(sheet, columnName(5 + i) + '6')));
+    }
+    for (let i = 0; i < 24; i++) {
+      if (ends[i] !== 5 + i) {
+        throw uploadError('plant-report', { date, detail: 'report-times', value: ends[i] });
+      }
+    }
+
+    const values = [];
+    let sum = 0;
+    for (let i = 0; i < 24; i++) {
+      const raw = cellValue(sheet, columnName(5 + i) + '10');
+      let value = 0;
+      if (raw !== null && raw !== undefined && String(raw).trim() !== '') {
+        value = parseNumber(raw);
+        if (value === null) {
+          throw uploadError('plant-report', { date, detail: 'report-values', hour: i + 1 });
+        }
+      }
+      values.push(value);
+      sum += value;
+    }
+
+    const total = parseNumber(cellValue(sheet, 'D10'));
+    if (total === null) throw uploadError('plant-report', { date, detail: 'report-total' });
+    if (Math.abs(sum - total) > 1e-6) {
+      throw uploadError('plant-report', { date, detail: 'report-sum', sum, total });
+    }
+    return { type: 'report', date, values, total, fileName };
+  }
+
+  function parsePlantPlan(sheet, fileName) {
+    const date = dateFromFileName(fileName);
+    if (!date) throw uploadError('plant-plan', { date: '', detail: 'plan-date' });
+
+    const byStart = new Map();
+    let sum = 0;
+    for (let row = 7; row <= 30; row++) {
+      const label = String(cellValue(sheet, 'C' + row) === null ? '' : cellValue(sheet, 'C' + row)).trim();
+      const match = label.match(/^(\d{1,2})\s*-\s*(\d{1,2})$/);
+      if (!match) {
+        throw uploadError('plant-plan', { date, detail: 'plan-label', row, label });
+      }
+      const start = Number(match[1]);
+      if (byStart.has(start)) {
+        throw uploadError('plant-plan', { date, detail: 'plan-label', row, label });
+      }
+      const raw = cellValue(sheet, 'D' + row);
+      let mw = 0;
+      if (raw !== null && raw !== undefined && String(raw).trim() !== '') {
+        mw = parseNumber(raw);
+        if (mw === null) {
+          throw uploadError('plant-plan', { date, detail: 'plan-values', row });
+        }
+      }
+      const kwh = mw * 1000;
+      byStart.set(start, kwh);
+      sum += kwh;
+    }
+
+    const starts = Array.from(byStart.keys()).sort((a, b) => a - b);
+    if (starts.length !== 24 || starts.some((value, index) => value !== index)) {
+      throw uploadError('plant-plan', { date, detail: 'plan-hours', count: starts.length });
+    }
+
+    const totalText = String(cellValue(sheet, 'A32') === null ? '' : cellValue(sheet, 'A32'));
+    const totalMatch = totalText.match(/([\d\s]+)\s*кВтч/i);
+    const total = totalMatch ? parseNumber(totalMatch[1]) : null;
+    if (total === null) throw uploadError('plant-plan', { date, detail: 'plan-total' });
+    if (Math.abs(sum - total) > 1e-6) {
+      throw uploadError('plant-plan', { date, detail: 'plan-sum', sum, total });
+    }
+    return { type: 'plan', date, byStart, total, fileName };
+  }
+
+  async function readPlantFile(file, book) {
+    if (typeof XLSX === 'undefined') {
+      throw uploadError('library', { date: dateFromFileName(file.name) });
+    }
+    if (!/\.(xlsx|xls)$/i.test(file.name)) {
+      throw uploadError('plant-format', { date: dateFromFileName(file.name) });
+    }
+    if (!book) book = await readWorkbook(file);
+    const report = book.Sheets['Лист1'];
+    const plan = book.Sheets['Карточки заявок'];
+    if (report && plan) {
+      throw uploadError('plant-both', { date: dateFromFileName(file.name) });
+    }
+    if (!report && !plan) {
+      throw uploadError('plant-type', { date: dateFromFileName(file.name) });
+    }
+    return report ? parsePlantReport(report, file.name) : parsePlantPlan(plan, file.name);
+  }
+
+  function plantErrorMessage(error) {
+    if (['empty', 'header', 'duplicate', 'sheet', 'format'].includes(error.code)) {
+      return uploadErrorMessage(error);
+    }
+    if (error.code === 'library') {
+      return t('The Excel reader (SheetJS) did not load. Check the internet connection and try again.',
+        'Не загрузился модуль чтения Excel (SheetJS). Проверьте интернет и попробуйте снова.');
+    }
+    if (error.code === 'plant-format') {
+      return t('Not an .xlsx or .xls file.', 'Это не файл .xlsx или .xls.');
+    }
+    if (error.code === 'plant-type') {
+      return t('No Лист1 or Карточки заявок sheet was found.',
+        'Не найден лист Лист1 или Карточки заявок.');
+    }
+    if (error.code === 'plant-both') {
+      return t('Both sheets are in one file. Use one file per daily report or plan card.',
+        'В одном файле оба листа. Используйте отдельный файл для суточного отчёта или карточки плана.');
+    }
+    if (error.code === 'read') {
+      return t('Could not read the file: ' + error.message, 'Не удалось прочитать файл: ' + error.message);
+    }
+    if (error.code !== 'plant-report' && error.code !== 'plant-plan') {
+      return t('Could not read the file.', 'Не удалось прочитать файл.');
+    }
+    if (error.detail === 'report-date') {
+      return t('Report date C4 is missing or not a date.', 'Дата отчёта в C4 отсутствует или не является датой.');
+    }
+    if (error.detail === 'report-header') {
+      return t('Report headers A6, A7, A8 or B10 are not the plant report headers.',
+        'Заголовки A6, A7, A8 или B10 — не заголовки суточного отчёта станции.');
+    }
+    if (error.detail === 'report-name-date') {
+      return t('Report date C4 ' + error.date + ' ≠ date in the file name ' + error.fileDate + '.',
+        'Дата отчёта C4 ' + error.date + ' ≠ дате в имени файла ' + error.fileDate + '.');
+    }
+    if (error.detail === 'report-times') {
+      return t('Report times in row 6 are not the 24 Astana hours 05:00–04:00.',
+        'Время в строке 6 отчёта — не 24 часа Астаны 05:00–04:00.');
+    }
+    if (error.detail === 'report-values') {
+      return t('Report hour ' + error.hour + ' in row 10 is not a number.',
+        'Час ' + error.hour + ' в строке 10 отчёта — не число.');
+    }
+    if (error.detail === 'report-total') {
+      return t('Report total D10 is missing or not a number.', 'Итог отчёта в D10 отсутствует или не является числом.');
+    }
+    if (error.detail === 'report-sum') {
+      return t('Report hours sum ' + formatKwh(error.sum) + ' ≠ D10 ' + formatKwh(error.total) + '.',
+        'Сумма часов отчёта ' + formatKwh(error.sum) + ' ≠ D10 ' + formatKwh(error.total) + '.');
+    }
+    if (error.detail === 'plan-date') {
+      return t('No date in the plan file name (for example план 1.09.26.xlsx).',
+        'В имени файла плана нет даты (например, план 1.09.26.xlsx).');
+    }
+    if (error.detail === 'plan-label') {
+      return t('Plan row ' + error.row + ' has no hour like 00 - 01.',
+        'В строке ' + error.row + ' плана нет часа вида 00 - 01.');
+    }
+    if (error.detail === 'plan-values') {
+      return t('Plan row ' + error.row + ' in column D is not a number.',
+        'Строка ' + error.row + ' плана в столбце D — не число.');
+    }
+    if (error.detail === 'plan-hours') {
+      return t('Plan needs 24 hour labels from 00 to 23; found ' + error.count + '.',
+        'Плану нужны 24 часовых подписи от 00 до 23; найдено ' + error.count + '.');
+    }
+    if (error.detail === 'plan-total') {
+      return t('Plan total A32 has no kWh number.', 'В итоге плана A32 нет числа кВт·ч.');
+    }
+    if (error.detail === 'plan-sum') {
+      return t('Plan hours sum ' + formatKwh(error.sum) + ' ≠ A32 ' + formatKwh(error.total) + '.',
+        'Сумма часов плана ' + formatKwh(error.sum) + ' ≠ A32 ' + formatKwh(error.total) + '.');
+    }
+    return t('Could not read the file.', 'Не удалось прочитать файл.');
+  }
+
+  function issueText(issue) {
+    if (issue.code === 'duplicate-report') return t('Duplicate report date', 'Повторная дата отчёта');
+    if (issue.code === 'duplicate-plan') return t('Duplicate plan date', 'Повторная дата плана');
+    if (issue.code === 'file') return t('File check failed', 'Проверка файла не прошла');
+    return t('Check failed', 'Проверка не прошла');
+  }
+
+  function buildPlantResult(entries, errors) {
+    const reports = new Map();
+    const plans = new Map();
+    const issues = new Map();
+    function addIssue(date, issue) {
+      if (!date) return;
+      if (!issues.has(date)) issues.set(date, []);
+      issues.get(date).push(issue);
+    }
+    entries.forEach(entry => {
+      if (entry.type === 'report') {
+        if (reports.has(entry.date)) addIssue(entry.date, { code: 'duplicate-report' });
+        else reports.set(entry.date, entry);
+      } else {
+        if (plans.has(entry.date)) addIssue(entry.date, { code: 'duplicate-plan' });
+        else plans.set(entry.date, entry);
+      }
+    });
+    errors.forEach(error => addIssue(error.date, { code: 'file' }));
+    const dates = Array.from(new Set([...reports.keys(), ...plans.keys(), ...issues.keys()])).sort();
+    const days = dates.map(date => ({
+      date,
+      report: reports.get(date) || null,
+      plan: plans.get(date) || null,
+      issues: issues.get(date) || []
+    }));
+    let ok = 0;
+    days.forEach(day => {
+      if (day.report && day.plan && !day.issues.length) ok++;
+    });
+    return { entries, errors, days, ok };
+  }
+
+  function buildPlantDaily(days) {
+    const rows = days.filter(day => day.report).map(day => {
+      const real = day.report.total;
+      const planKwh = day.plan ? day.plan.total : null;
+      const note = planKwh === null ? '' : noteFor({ real, plan: planKwh });
+      return { date: day.date, report: day.report, plan: day.plan, real, planKwh, note };
+    });
+    rows.sort((a, b) => a.date.localeCompare(b.date));
+    rows.forEach((row, index) => {
+      const prev = previousCleanRow(rows, index);
+      row.forecast = prev ? prev.real : null;
+      row.source = prev ? prev.date : '';
+      row.myAcc = row.note || row.forecast === null || row.real <= 0
+        ? null : 100 - 100 * Math.abs(row.forecast - row.real) / row.real;
+      row.planAcc = row.note || row.planKwh === null || row.real <= 0
+        ? null : 100 - 100 * Math.abs(row.planKwh - row.real) / row.real;
+    });
+    return rows;
+  }
+
+  function plantShape(rows, index) {
+    const clean = rows.slice(0, index).filter(row => !row.note).slice(-7);
+    if (!clean.length) return null;
+    const weights = Array(24).fill(0);
+    clean.forEach(row => {
+      for (let i = 0; i < 24; i++) weights[(4 + i) % 24] += row.report.values[i];
+    });
+    const total = weights.reduce((a, b) => a + b, 0);
+    if (total <= 0) return null;
+    return { weights, total, days: clean.length };
+  }
+
+  function buildPlantSummary(rows, days) {
+    const minePairs = [];
+    const planPairs = [];
+    rows.forEach(row => {
+      if (row.note || row.real <= 0 || row.forecast === null) return;
+      minePairs.push({ forecast: row.forecast, real: row.real });
+      if (row.planKwh !== null) planPairs.push({ forecast: row.planKwh, real: row.real });
+    });
+    const clean = rows.filter(row => !row.note);
+    const lastClean = clean.length ? clean[clean.length - 1] : null;
+    let next = null;
+    if (rows.length && lastClean) {
+      const nextDate = new Date(rows[rows.length - 1].date + 'T00:00:00Z');
+      nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+      const date = nextDate.toISOString().slice(0, 10);
+      const planDay = days.find(day => day.date === date);
+      next = {
+        date,
+        value: lastClean.real,
+        source: lastClean.date,
+        shape: plantShape(rows, rows.length),
+        plan: planDay && planDay.plan ? planDay.plan : null
+      };
+    }
+    return { mine: scorePairs(minePairs), plan: scorePairs(planPairs), next };
+  }
+
+  async function readAllFiles(fileList) {
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+    const started = performance.now();
+    read.state = 'loading';
+    read.fileCount = files.length;
+    read.reportCount = 0;
+    read.planCount = 0;
+    read.otherCount = 0;
+    read.errorCount = 0;
+    upload.state = 'idle';
+    upload.error = null;
+    upload.result = null;
+    plant.state = 'loading';
+    plant.fileCount = files.length;
+    plant.error = null;
+    plant.result = null;
+    plant.elapsedMs = null;
+    renderUploadState();
+    renderPlantState();
+    renderReadMessage();
+
+    const entries = [];
+    const errors = [];
+    const tableRows = [];
+    let skipped = 0;
+    for (const file of files) {
+      try {
+        const name = file.name.toLowerCase();
+        if (name.endsWith('.csv')) {
+          const parsed = await readUpload(file);
+          tableRows.push(...parsed.rows);
+          skipped += parsed.skipped || 0;
+          read.otherCount++;
+        } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+          const book = await readWorkbook(file);
+          if (book.Sheets.ImbalanceData) {
+            const parsed = rowsFromBook(book);
+            tableRows.push(...parsed.rows);
+            skipped += parsed.skipped || 0;
+            read.otherCount++;
+          } else {
+            entries.push(await readPlantFile(file, book));
+          }
+        } else {
+          throw uploadError('plant-format', { date: dateFromFileName(file.name) });
+        }
+      } catch (error) {
+        const stored = error && error.code ? error : uploadError('read', { message: error.message });
+        errors.push({
+          fileName: file.name,
+          date: stored.date || dateFromFileName(file.name),
+          error: stored
+        });
+      }
+    }
+
+    if (tableRows.length) {
+      try {
+        upload.result = buildUploadResult(finishRows(tableRows, skipped));
+        upload.result.ms = performance.now() - started;
+        upload.state = 'ready';
+      } catch (error) {
+        upload.error = error && error.code ? error : uploadError('read', { message: error.message });
+        upload.state = 'error';
+      }
+    }
+
+    if (entries.length || errors.length) {
+      plant.result = buildPlantResult(entries, errors);
+      plant.result.daily = buildPlantDaily(plant.result.days);
+      plant.result.summary = buildPlantSummary(plant.result.daily, plant.result.days);
+      plant.elapsedMs = performance.now() - started;
+      plant.selectedDay = '';
+      plant.state = 'ready';
+    } else {
+      plant.state = 'idle';
+    }
+
+    read.reportCount = entries.filter(entry => entry.type === 'report').length;
+    read.planCount = entries.filter(entry => entry.type === 'plan').length;
+    read.errorCount = errors.length;
+    read.state = 'ready';
+    renderUploadState();
+    renderPlantState();
+    renderReadMessage();
+  }
+
+  function shortDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso + 'T12:00:00Z');
+    if (lang === 'ru') {
+      return new Intl.DateTimeFormat('ru-RU', {
+        timeZone: 'UTC', day: 'numeric', month: 'short'
+      }).format(d).replace(/\.$/, '');
+    }
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'UTC', day: 'numeric', month: 'short'
+    }).formatToParts(d);
+    const day = parts.find(part => part.type === 'day').value;
+    const month = parts.find(part => part.type === 'month').value;
+    return day + ' ' + month;
+  }
+
+  function renderReadMessage() {
+    const el = $('readMsg');
+    el.className = 'msg';
+    if (read.state === 'idle') {
+      el.textContent = '';
+      return;
+    }
+    if (read.state === 'loading') {
+      el.textContent = t('Reading ' + read.fileCount + ' ' + pluralEn(read.fileCount, 'file', 'files') + '…',
+        'Читаю файлов: ' + read.fileCount + '…');
+      return;
+    }
+    let text;
+    if (read.reportCount || read.planCount) {
+      text = t(read.fileCount + ' ' + pluralEn(read.fileCount, 'file', 'files') + ' read: '
+        + read.reportCount + ' ' + pluralEn(read.reportCount, 'report', 'reports') + ', '
+        + read.planCount + ' ' + pluralEn(read.planCount, 'plan', 'plans') + '.',
+      'Прочитано файлов: ' + read.fileCount + '; отчётов — ' + read.reportCount
+        + ', планов — ' + read.planCount + '.');
+      if (read.otherCount) {
+        text += t(' ' + read.otherCount + ' ' + pluralEn(read.otherCount, 'file', 'files') + ' with a table of days.',
+          ' Файлов с таблицей дней: ' + read.otherCount + '.');
+      }
+    } else if (read.otherCount) {
+      text = t(read.fileCount + ' ' + pluralEn(read.fileCount, 'file', 'files') + ' read: a table of days.',
+        'Прочитано файлов: ' + read.fileCount + ' (таблица дней).');
+    } else {
+      text = t(read.fileCount + ' ' + pluralEn(read.fileCount, 'file', 'files') + ' read, but no usable data.',
+        'Прочитано файлов: ' + read.fileCount + ', но подходящих данных нет.');
+    }
+    const next = plant.result && plant.result.summary ? plant.result.summary.next : null;
+    if (next && !next.plan) {
+      text += t(' Missing: plan for ' + shortDate(next.date) + '.',
+        ' Не хватает: плана на ' + shortDate(next.date) + '.');
+    }
+    if (read.errorCount) {
+      text += t(' ' + read.errorCount + ' ' + pluralEn(read.errorCount, 'file needs', 'files need') + ' attention.',
+        ' Файлов требуют внимания: ' + read.errorCount + '.');
+      el.className = 'msg error';
+    }
+    el.textContent = text;
+  }
+
+  function updatePlantMessage(text, isError) {
+    const el = $('plantMsg');
+    el.textContent = text;
+    el.className = isError ? 'msg error' : 'msg';
+  }
+
+  function renderPlant() {
+    const result = plant.result;
+    if (!result) return;
+    const reportCount = result.entries.filter(entry => entry.type === 'report').length;
+    const planCount = result.entries.filter(entry => entry.type === 'plan').length;
+    let countText = t(
+      'Read ' + plant.fileCount + ' ' + pluralEn(plant.fileCount, 'file', 'files') + ': '
+        + reportCount + ' ' + pluralEn(reportCount, 'report', 'reports') + ', '
+        + planCount + ' ' + pluralEn(planCount, 'plan', 'plans') + '; '
+        + result.days.length + ' ' + pluralEn(result.days.length, 'date', 'dates') + ' checked, '
+        + result.ok + ' OK.',
+      'Прочитано файлов: ' + plant.fileCount + ', отчётов: ' + reportCount + ', планов: ' + planCount
+        + '; проверено дат: ' + result.days.length + ', без ошибок: ' + result.ok + '.'
+    );
+    if (Number.isFinite(plant.elapsedMs)) {
+      const elapsed = plant.elapsedMs < 1000
+        ? Math.round(plant.elapsedMs) + ' ms'
+        : (plant.elapsedMs / 1000).toFixed(2) + ' s';
+      countText += t(' Calculated in ' + elapsed + '.', ' Рассчитано за ' + elapsed + '.');
+    }
+    $('plantCount').textContent = countText;
+
+    const issues = $('plantIssues');
+    issues.textContent = '';
+    if (result.errors.length) {
+      result.errors.forEach(error => {
+        const item = document.createElement('li');
+        item.textContent = (error.fileName ? error.fileName + ' — ' : '') + plantErrorMessage(error.error);
+        issues.appendChild(item);
+      });
+      issues.hidden = false;
+    } else {
+      issues.hidden = true;
+    }
+
+    const body = $('plantTableBody');
+    body.textContent = '';
+    result.days.forEach(day => {
+      const tr = document.createElement('tr');
+      const date = document.createElement('td');
+      date.textContent = day.date;
+      tr.appendChild(date);
+      const report = document.createElement('td');
+      report.textContent = day.report ? t('24 h, sum OK', '24 ч, сумма сходится') : '—';
+      tr.appendChild(report);
+      const plan = document.createElement('td');
+      plan.textContent = day.plan ? t('24 h, sum OK', '24 ч, сумма сходится') : '—';
+      tr.appendChild(plan);
+      const status = document.createElement('td');
+      if (day.issues.length) {
+        status.textContent = day.issues.map(issueText).join('; ');
+        status.className = 'bad';
+      } else if (!day.report && !day.plan) {
+        status.textContent = t('No file', 'Нет файла');
+        status.className = 'bad';
+      } else if (!day.report) {
+        status.textContent = t('Missing report', 'Нет отчёта');
+        status.className = 'bad';
+      } else if (!day.plan) {
+        status.textContent = t('Missing plan', 'Нет плана');
+        status.className = 'bad';
+      } else {
+        status.textContent = t('OK', 'OK');
+        status.className = 'ok';
+      }
+      tr.appendChild(status);
+      body.appendChild(tr);
+    });
+    renderHero();
+    renderPlantDaily();
+    renderPlantHourly();
+    renderPlantNext();
+  }
+
+  function renderHero() {
+    let mine = null;
+    let plan = null;
+    let next = null;
+    const summary = plant.result && plant.result.summary;
+    if (summary && summary.next && summary.next.value !== null) {
+      mine = summary.mine;
+      plan = summary.plan;
+      next = summary.next;
+    } else if (upload.result && upload.result.next && upload.result.next.value !== null) {
+      mine = upload.result.mine;
+      plan = upload.result.plan;
+      next = upload.result.next;
+    }
+    const hero = $('heroResult');
+    if (!next) {
+      hero.hidden = true;
+      return;
+    }
+    hero.hidden = false;
+    $('heroLabel').textContent = t('Forecast for ' + shortDate(next.date) + ':',
+      'Прогноз на ' + shortDate(next.date) + ':');
+    $('heroValue').textContent = formatKwh(next.value);
+    $('heroSource').textContent = next.source ? t('from ' + next.source, 'из ' + next.source) : '';
+    $('heroMine').textContent = mine ? formatPct(mine.accuracy) : '—';
+    $('heroMineWithin').textContent = withinText(mine);
+    $('heroPlan').textContent = plan ? formatPct(plan.accuracy) : '—';
+    $('heroPlanWithin').textContent = withinText(plan);
+  }
+
+  function renderPlantNext() {
+    const next = plant.result && plant.result.summary ? plant.result.summary.next : null;
+    const ready = next && next.shape;
+    $('plantNextWrap').hidden = !ready;
+    const body = $('plantNextBody');
+    body.textContent = '';
+    if (!ready) return;
+    $('plantNextNote').textContent = t(
+      'For ' + next.date + ': H4 shape from ' + next.shape.days + ' clean days; target '
+        + formatKwh(next.value) + ' from ' + next.source + '.',
+      'На ' + next.date + ': форма H4 по ' + next.shape.days + ' обычным дням; цель '
+        + formatKwh(next.value) + ' из ' + next.source + '.'
+    );
+    const planByHour = new Map();
+    if (next.plan) {
+      next.plan.byStart.forEach((kwh, start) => planByHour.set((start + 4) % 24, kwh));
+    }
+    const fragment = document.createDocumentFragment();
+    for (let hour = 0; hour < 24; hour++) {
+      const tr = document.createElement('tr');
+      addCell(tr, pad2(hour) + ':00');
+      addCell(tr, formatKwh(next.value * next.shape.weights[hour] / next.shape.total));
+      addCell(tr, planByHour.has(hour) ? formatKwh(planByHour.get(hour)) : '—');
+      fragment.appendChild(tr);
+    }
+    body.appendChild(fragment);
+  }
+
+  function renderPlantDaily() {
+    const rows = plant.result && plant.result.daily ? plant.result.daily : [];
+    $('plantDailyWrap').hidden = !rows.length;
+    const body = $('plantDailyBody');
+    body.textContent = '';
+    const select = $('plantDay');
+    select.textContent = '';
+    if (!rows.length) {
+      plant.selectedDay = '';
+      return;
+    }
+    const fragment = document.createDocumentFragment();
+    rows.forEach(row => {
+      const tr = document.createElement('tr');
+      if (row.note) tr.className = 'noted';
+      addCell(tr, row.date);
+      addCell(tr, row.forecast === null ? '—' : formatKwh(row.forecast));
+      addCell(tr, formatKwh(row.real));
+      addCell(tr, row.planKwh === null ? '—' : formatKwh(row.planKwh));
+      addCell(tr, formatPct(row.myAcc));
+      addCell(tr, formatPct(row.planAcc));
+      addCell(tr, row.note === 'outage' ? t('outage', 'авария')
+        : row.note === 'plan_zero' ? t('plan_zero', 'нулевой план') : '');
+      fragment.appendChild(tr);
+    });
+    body.appendChild(fragment);
+
+    rows.forEach(row => {
+      const option = document.createElement('option');
+      option.value = row.date;
+      option.textContent = row.date;
+      select.appendChild(option);
+    });
+    if (!plant.selectedDay || !rows.some(row => row.date === plant.selectedDay)) {
+      plant.selectedDay = rows[rows.length - 1].date;
+    }
+    select.value = plant.selectedDay;
+  }
+
+  function renderPlantHourly() {
+    const rows = plant.result && plant.result.daily ? plant.result.daily : [];
+    $('plantHourlyWrap').hidden = !rows.length;
+    const body = $('plantHourlyBody');
+    body.textContent = '';
+    const chart = $('plantChart');
+    chart.textContent = '';
+    const note = $('plantHourlyNote');
+    if (!rows.length) {
+      note.textContent = '';
+      return;
+    }
+    const index = rows.findIndex(row => row.date === plant.selectedDay);
+    if (index < 0) return;
+    const row = rows[index];
+    const shape = plantShape(rows, index);
+    if (!shape || row.forecast === null) {
+      note.textContent = t('No previous clean day — hourly forecast is blank.',
+        'Нет предыдущего обычного дня — почасовой прогноз пустой.');
+      return;
+    }
+    note.textContent = t(
+      'H4 shape from ' + shape.days + ' clean days; daily target ' + formatKwh(row.forecast)
+        + ' from ' + row.source + '.',
+      'Форма H4 по ' + shape.days + ' обычным дням; суточная цель ' + formatKwh(row.forecast)
+        + ' из ' + row.source + '.'
+    );
+    const planByHour = new Map();
+    if (row.plan) {
+      row.plan.byStart.forEach((kwh, start) => planByHour.set((start + 4) % 24, kwh));
+    }
+    const values = [];
+    for (let hour = 0; hour < 24; hour++) {
+      values.push(row.forecast * shape.weights[hour] / shape.total);
+    }
+    const max = Math.max(...values, 1);
+    values.forEach((value, hour) => {
+      const col = document.createElement('div');
+      col.className = 'col';
+      col.title = pad2(hour) + ':00 · ' + formatKwh(value) + t(' · real ', ' · факт ')
+        + formatKwh(row.report.values[(hour - 4 + 24) % 24]);
+      const area = document.createElement('div');
+      area.className = 'bar-area';
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = (value > 0 ? Math.max(2, 100 * value / max) : 0) + '%';
+      area.appendChild(bar);
+      const label = document.createElement('div');
+      label.className = 'hour';
+      label.textContent = hour % 3 === 0 ? pad2(hour) : '';
+      col.appendChild(area);
+      col.appendChild(label);
+      chart.appendChild(col);
+    });
+    const fragment = document.createDocumentFragment();
+    for (let hour = 0; hour < 24; hour++) {
+      const tr = document.createElement('tr');
+      addCell(tr, pad2(hour) + ':00');
+      addCell(tr, formatKwh(values[hour]));
+      addCell(tr, formatKwh(row.report.values[(hour - 4 + 24) % 24]));
+      addCell(tr, planByHour.has(hour) ? formatKwh(planByHour.get(hour)) : '—');
+      fragment.appendChild(tr);
+    }
+    body.appendChild(fragment);
+  }
+
+  function renderPlantState() {
+    $('plantResult').hidden = plant.state !== 'ready';
+    if (plant.state === 'idle') {
+      updatePlantMessage('', false);
+      $('plantIssues').hidden = true;
+      return;
+    }
+    if (plant.state === 'loading') {
+      updatePlantMessage(t('Reading ' + plant.fileCount + ' ' + pluralEn(plant.fileCount, 'file', 'files') + '…',
+        'Читаю файлов: ' + plant.fileCount + '…'), false);
+      return;
+    }
+    if (plant.state === 'error') {
+      updatePlantMessage(plant.error || t('Could not read the files.', 'Не удалось прочитать файлы.'), true);
+      return;
+    }
+    if (plant.result && plant.result.errors.length) {
+      updatePlantMessage(t('Read ' + plant.fileCount + ' ' + pluralEn(plant.fileCount, 'file', 'files')
+        + '. Some files need attention.',
+        'Прочитано файлов: ' + plant.fileCount + '. Некоторые файлы требуют внимания.'), true);
+    } else {
+      updatePlantMessage(t('Files read in this browser.', 'Файлы прочитаны в этом браузере.'), false);
+    }
+    renderPlant();
+  }
+
+  function previousCleanRow(rows, index) {
+    for (let j = index - 1; j >= 0; j--) {
+      if (!rows[j].note) return rows[j];
+    }
+    return null;
+  }
+
+  function scorePairs(pairs) {
+    const days = pairs.length;
+    if (!days) return null;
+    let sumReal = 0;
+    let sumMiss = 0;
+    let within = 0;
+    pairs.forEach(pair => {
+      const miss = Math.abs(pair.forecast - pair.real);
+      sumReal += pair.real;
+      sumMiss += miss;
+      if (miss <= 0.10 * pair.real) within++;
+    });
+    const avgReal = sumReal / days;
+    const miss = sumMiss / days;
+    return {
+      days,
+      avgReal,
+      miss,
+      accuracy: 100 - 100 * miss / avgReal,
+      within,
+      withinPct: 100 * within / days
+    };
+  }
+
+  function buildUploadResult(parsed) {
+    const rows = parsed.rows;
+    const items = [];
+    const months = new Map();
+    let notes = 0;
+    let noPrev = 0;
+    rows.forEach((row, i) => {
+      if (row.note) {
+        notes++;
+        return;
+      }
+      const prev = previousCleanRow(rows, i);
+      if (!prev) {
+        noPrev++;
+        return;
+      }
+      const item = { date: row.date, forecast: prev.real, real: row.real, plan: row.plan };
+      items.push(item);
+      const key = row.date.slice(0, 7);
+      if (!months.has(key)) months.set(key, []);
+      months.get(key).push(item);
+    });
+    const monthRows = [...months.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([key, list]) => ({
+      key,
+      mine: scorePairs(list.map(item => ({ forecast: item.forecast, real: item.real }))),
+      plan: scorePairs(list.filter(item => item.plan !== null).map(item => ({ forecast: item.plan, real: item.real })))
+    }));
+    const last = rows[rows.length - 1];
+    const lastClean = [...rows].reverse().find(row => !row.note);
+    const nextDate = new Date(last.date + 'T00:00:00Z');
+    nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+    return {
+      rows,
+      skipped: parsed.skipped,
+      notes,
+      noPrev,
+      mine: scorePairs(items.map(item => ({ forecast: item.forecast, real: item.real }))),
+      plan: scorePairs(items.filter(item => item.plan !== null).map(item => ({ forecast: item.plan, real: item.real }))),
+      months: monthRows,
+      next: {
+        date: nextDate.toISOString().slice(0, 10),
+        value: lastClean ? lastClean.real : null,
+        source: lastClean ? lastClean.date : ''
+      }
+    };
+  }
+
+  function uploadErrorMessage(error) {
+    if (error.code === 'library') {
+      return t('The Excel reader (SheetJS) did not load. Check the internet connection and try again.',
+        'Не загрузился модуль чтения Excel (SheetJS). Проверьте интернет и попробуйте снова.');
+    }
+    if (error.code === 'header') {
+      return t('The CSV needs a header row with date and real_kwh.', 'В CSV нужна строка заголовка с date и real_kwh.');
+    }
+    if (error.code === 'sheet') {
+      return t('The Excel file has no ImbalanceData sheet. Sheets found: ' + error.sheets,
+        'В файле Excel нет листа ImbalanceData. Найдены листы: ' + error.sheets);
+    }
+    if (error.code === 'empty') {
+      return t('No rows with a date and real_kwh were found.', 'Не найдено строк с датой и real_kwh.');
+    }
+    if (error.code === 'duplicate') {
+      return t('The same date appears twice: ' + error.date, 'Одна и та же дата встречается дважды: ' + error.date);
+    }
+    if (error.code === 'format') {
+      return t('Choose a .csv, .xlsx or .xls file.', 'Выберите файл .csv, .xlsx или .xls.');
+    }
+    if (error.code === 'read') {
+      return t('Could not read the file: ' + error.message, 'Не удалось прочитать файл: ' + error.message);
+    }
+    return t('Could not read the file.', 'Не удалось прочитать файл.');
+  }
+
+  function updateUploadMessage(text, isError) {
+    const el = $('uploadMsg');
+    el.textContent = text;
+    el.className = isError ? 'msg error' : 'msg';
+  }
+
+  function renderUploadState() {
+    $('uploadResult').hidden = upload.state !== 'ready';
+    if (upload.state === 'idle') {
+      updateUploadMessage('', false);
+    } else if (upload.state === 'loading') {
+      updateUploadMessage(t('Reading the file…', 'Читаю файл…'), false);
+    } else if (upload.state === 'error') {
+      updateUploadMessage(uploadErrorMessage(upload.error), true);
+    } else {
+      const elapsed = upload.result && Number.isFinite(upload.result.ms)
+        ? (upload.result.ms < 1000
+          ? Math.round(upload.result.ms) + ' ms'
+          : (upload.result.ms / 1000).toFixed(2) + ' s')
+        : '';
+      updateUploadMessage(elapsed
+        ? t('File read and scored in ' + elapsed + '.', 'Файл прочитан и оценён за ' + elapsed + '.')
+        : t('File read in this browser.', 'Файл прочитан в этом браузере.'), false);
+      renderUpload();
+    }
+  }
+
+  function addCell(row, text) {
+    const cell = document.createElement('td');
+    cell.textContent = text;
+    row.appendChild(cell);
+  }
+
+  function withinText(score) {
+    if (!score) return t('No scored days', 'Нет оценённых дней');
+    return t(score.within + ' of ' + score.days + ' days within 10%',
+      score.within + ' из ' + score.days + ' дней в пределах 10%');
+  }
+
+  function renderUpload() {
+    const result = upload.result;
+    if (!result) return;
+    renderHero();
+    let count = t(result.rows.length + ' days in the file · ' + (result.mine ? result.mine.days : 0) + ' scored · '
+      + result.notes + ' with a note',
+      result.rows.length + ' дней в файле · ' + (result.mine ? result.mine.days : 0) + ' оценено · '
+      + result.notes + ' с пометкой');
+    if (result.noPrev) {
+      count += t(' · ' + result.noPrev + ' without a previous clean day', ' · ' + result.noPrev + ' без предыдущего обычного дня');
+    }
+    if (result.skipped) {
+      count += t(' · ' + result.skipped + ' rows skipped', ' · ' + result.skipped + ' строк пропущено');
+    }
+    $('uploadCount').textContent = count;
+
+    const body = $('uploadTableBody');
+    body.textContent = '';
+    const fragment = document.createDocumentFragment();
+    result.rows.forEach((row, i) => {
+      const prev = previousCleanRow(result.rows, i);
+      const forecast = prev ? prev.real : null;
+      const tr = document.createElement('tr');
+      if (row.note) tr.className = 'noted';
+      addCell(tr, row.date);
+      addCell(tr, formatKwh(forecast));
+      addCell(tr, formatKwh(row.real));
+      addCell(tr, row.plan === null ? '—' : formatKwh(row.plan));
+      addCell(tr, row.note || forecast === null || row.real <= 0
+        ? '—' : formatPct(100 - 100 * Math.abs(forecast - row.real) / row.real));
+      addCell(tr, row.note || forecast === null || row.plan === null || row.real <= 0
+        ? '—' : formatPct(100 - 100 * Math.abs(row.plan - row.real) / row.real));
+      addCell(tr, row.note === 'outage' ? t('outage', 'авария')
+        : row.note === 'plan_zero' ? t('plan_zero', 'нулевой план') : '');
+      fragment.appendChild(tr);
+    });
+    body.appendChild(fragment);
+
+    $('uploadMonths').hidden = result.months.length < 2;
+    const monthsBody = $('uploadMonthsBody');
+    monthsBody.textContent = '';
+    result.months.forEach(month => {
+      const tr = document.createElement('tr');
+      addCell(tr, monthName(month.key));
+      addCell(tr, String(month.mine.days));
+      addCell(tr, formatPct(month.mine.accuracy));
+      addCell(tr, month.mine.within + '/' + month.mine.days);
+      addCell(tr, month.plan ? formatPct(month.plan.accuracy) : '—');
+      addCell(tr, month.plan ? month.plan.within + '/' + month.plan.days : '—');
+      monthsBody.appendChild(tr);
+    });
+  }
+
+  function setLive(text, isError) {
+    const el = $('liveMsg');
+    el.textContent = text;
+    el.className = isError ? 'msg error' : 'msg';
+  }
+
+  function applyStaticText() {
+    const map = lang === 'ru' ? RU : EN;
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const parent = node.parentElement;
+        if (!parent || parent.closest('script, style')) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(node => {
+      const match = /^(\s*)([\s\S]*?)(\s*)$/.exec(node.nodeValue);
+      if (!match || !match[2]) return;
+      const key = match[2].replace(/\s+/g, ' ').trim();
+      const next = map[key];
+      if (next !== undefined) node.nodeValue = match[1] + next + match[3];
+    });
+  }
+
+  function applyAttributes() {
+    ATTRS.forEach(([id, attr, en, ru]) => {
+      const el = $(id);
+      if (el) el.setAttribute(attr, t(en, ru));
+    });
+    const button = $('langToggle');
+    button.setAttribute('aria-label', t('Switch language', 'Переключить язык'));
+    button.setAttribute('title', t('Switch language', 'Переключить язык'));
+  }
+
+  function renderDateLine() {
+    $('dateLine').textContent = weather.tomorrow
+      ? t('Tomorrow: ', 'Завтра: ') + longDate(weather.tomorrow)
+      : t('Tomorrow: —', 'Завтра: —');
+  }
+
+  function renderWeatherNote() {
+    if (weather.state === 'ready') {
+      $('sunDaily').textContent = weather.dailySun.toFixed(2);
+      $('weatherNote').textContent = t(
+        'Forecast for ' + longDate(weather.tomorrow) + ', fetched in the browser from Open-Meteo at 42.866 N, 68.376 E.',
+        'Прогноз на завтра (' + longDate(weather.tomorrow) + '), получен в браузере из Open-Meteo по точке 42.866 с. ш., 68.376 в. д.'
+      );
+    } else if (weather.state === 'error') {
+      $('sunDaily').textContent = '—';
+      $('weatherNote').textContent = t('No weather data.', 'Нет данных о погоде.');
+    } else {
+      $('sunDaily').textContent = '—';
+      $('weatherNote').textContent = t('Loading the weather forecast…', 'Загружаю прогноз погоды…');
+    }
+  }
+
+  function weatherErrorMessage(error) {
+    if (error.code === 'http') {
+      return t('the weather service answered HTTP ' + error.status + ': ' + error.body,
+        'служба погоды ответила HTTP ' + error.status + ': ' + error.body);
+    }
+    if (error.code === 'date') {
+      return t('the weather service did not return tomorrow (' + error.date + '); it returned ' + error.returned,
+        'служба погоды не вернула завтра (' + error.date + '); она вернула ' + error.returned);
+    }
+    if (error.code === 'sun') {
+      return t('the daily sun value for tomorrow is missing', 'нет суточного значения солнца на завтра');
+    }
+    if (error.code === 'hours') {
+      return t('expected 24 hourly values for tomorrow, got ' + error.count,
+        'ожидалось 24 почасовых значения на завтра, получено ' + error.count);
+    }
+    return error.message;
+  }
+
+  function updateLive() {
+    if (weather.state === 'error' && weather.error) {
+      setLive(t('Could not load the weather forecast: ', 'Не удалось загрузить прогноз погоды: ')
+        + weatherErrorMessage(weather.error), true);
+    } else {
+      setLive('', false);
+    }
+  }
+
+  function drawBars(real) {
+    const chart = $('chart');
+    chart.textContent = '';
+    if (!weather.hours.length) return;
+    const sumSun = weather.sun.reduce((a, b) => a + b, 0);
+    const values = weather.sun.map(s => (real !== null && sumSun > 0) ? real * s / sumSun : 0);
+    const max = Math.max(...values, 1);
+    values.forEach((v, i) => {
+      const col = document.createElement('div');
+      col.className = 'col';
+      col.title = weather.hours[i].slice(11, 16) + ' · ' + v.toFixed(0) + t(' kWh · sun ', ' кВт·ч · солнце ')
+        + weather.sun[i].toFixed(0) + t(' W/m²', ' Вт/м²');
+      const area = document.createElement('div');
+      area.className = 'bar-area';
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = (v > 0 ? Math.max(2, 100 * v / max) : 0) + '%';
+      area.appendChild(bar);
+      const hour = document.createElement('div');
+      hour.className = 'hour';
+      hour.textContent = i % 3 === 0 ? weather.hours[i].slice(11, 13) : '';
+      col.appendChild(area);
+      col.appendChild(hour);
+      chart.appendChild(col);
+    });
+    $('chartNote').textContent = real === null
+      ? t("Type today's real output to split it into hours in proportion to the hourly sun forecast. Hours with no sun get 0.",
+        'Введите фактическую выработку сегодня, чтобы разбить её по часам пропорционально прогнозу солнца. Часы без солнца получают 0.')
+      : t('Daily forecast ' + kwh(real) + ' split over 24 hours by the sun forecast; hours with no sun get 0.'
+        + ' Hourly sun values sum to ' + sumSun.toFixed(0) + ' W/m²; daily sun ' + weather.dailySun.toFixed(2) + ' MJ/m².',
+        'Суточный прогноз ' + kwh(real) + ' разбит на 24 часа по прогнозу солнца; часы без солнца получают 0.'
+        + ' Сумма почасового солнца ' + sumSun.toFixed(0) + ' Вт/м²; солнце за день ' + weather.dailySun.toFixed(2) + ' МДж/м².');
+  }
+
+  function render() {
+    const real = num('todayReal');
+    const plan = num('tomorrowPlan');
+    $('forecastValue').textContent = real === null ? '—' : kwh(real);
+    $('planValue').textContent = plan === null ? '—' : kwh(plan);
+    if (real === null || plan === null) {
+      $('diffValue').textContent = '—';
+    } else {
+      const diff = real - plan;
+      $('diffValue').textContent = (diff > 0 ? '+' : '') + kwh(diff);
+    }
+    drawBars(real);
+  }
+
+  function setLanguage(next, save) {
+    lang = next;
+    if (save) {
+      try {
+        localStorage.setItem(STORAGE_KEY, lang);
+      } catch (error) {
+        console.warn('Language choice could not be saved: ' + error.message);
+      }
+    }
+    document.documentElement.lang = lang;
+    document.title = t('Solar yield — tomorrow, Kargaly', 'Солнечная выработка — завтра, Каргалы');
+    applyStaticText();
+    applyAttributes();
+    renderDateLine();
+    renderWeatherNote();
+    updateLive();
+    render();
+    renderUploadState();
+    renderPlantState();
+    renderReadMessage();
+  }
+
+  async function loadWeather() {
+    const tomorrow = tomorrowInAlmaty();
+    weather.tomorrow = tomorrow;
+    weather.state = 'loading';
+    weather.error = null;
+    renderDateLine();
+    renderWeatherNote();
+    updateLive();
+    try {
+      const response = await fetch(API);
+      if (!response.ok) {
+        const failure = new Error('http');
+        failure.code = 'http';
+        failure.status = response.status;
+        failure.body = await response.text();
+        throw failure;
+      }
+      const data = await response.json();
+      const dailyIndex = data.daily && data.daily.time ? data.daily.time.indexOf(tomorrow) : -1;
+      if (dailyIndex < 0) {
+        const failure = new Error('date');
+        failure.code = 'date';
+        failure.date = tomorrow;
+        failure.returned = data.daily && data.daily.time ? data.daily.time.join(', ') : 'no dates';
+        throw failure;
+      }
+      const dailySun = Number(data.daily.shortwave_radiation_sum[dailyIndex]);
+      if (!Number.isFinite(dailySun)) {
+        const failure = new Error('sun');
+        failure.code = 'sun';
+        throw failure;
+      }
+      const hours = [];
+      const sun = [];
+      data.hourly.time.forEach((t, i) => {
+        if (t.startsWith(tomorrow)) {
+          hours.push(t);
+          sun.push(Number(data.hourly.shortwave_radiation[i]) || 0);
+        }
+      });
+      if (hours.length !== 24) {
+        const failure = new Error('hours');
+        failure.code = 'hours';
+        failure.count = hours.length;
+        throw failure;
+      }
+      weather.state = 'ready';
+      weather.dailySun = dailySun;
+      weather.hours = hours;
+      weather.sun = sun;
+      renderDateLine();
+      renderWeatherNote();
+      updateLive();
+      render();
+    } catch (error) {
+      weather.state = 'error';
+      weather.error = error;
+      weather.hours = [];
+      weather.sun = [];
+      renderWeatherNote();
+      updateLive();
+      render();
+    }
+  }
+
+  $('todayReal').addEventListener('input', render);
+  $('tomorrowPlan').addEventListener('input', render);
+  $('langToggle').addEventListener('click', () => {
+    setLanguage(lang === 'en' ? 'ru' : 'en', true);
+  });
+  $('allFiles').addEventListener('change', event => {
+    const files = event.target.files;
+    if (files && files.length) readAllFiles(files);
+    event.target.value = '';
+  });
+  const plantDrop = $('plantDrop');
+  plantDrop.addEventListener('click', event => {
+    if (event.target !== $('allFiles')) $('allFiles').click();
+  });
+  plantDrop.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      $('allFiles').click();
+    }
+  });
+  ['dragenter', 'dragover'].forEach(type => {
+    plantDrop.addEventListener(type, event => {
+      event.preventDefault();
+      plantDrop.classList.add('over');
+    });
+  });
+  ['dragleave', 'drop'].forEach(type => {
+    plantDrop.addEventListener(type, event => {
+      event.preventDefault();
+      plantDrop.classList.remove('over');
+    });
+  });
+  plantDrop.addEventListener('drop', event => {
+    if (event.dataTransfer && event.dataTransfer.files.length) {
+      readAllFiles(event.dataTransfer.files);
+    }
+  });
+  $('plantDay').addEventListener('change', event => {
+    plant.selectedDay = event.target.value;
+    renderPlantHourly();
+  });
+  setLanguage(lang, false);
+  loadWeather();
+</script>
+</body>
+</html>
